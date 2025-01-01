@@ -1,0 +1,23 @@
+.transcript-row {
+    display: flex;
+    padding: 16px 24px;
+    border-bottom: 1px solid #e0e0e0;
+    font-family: 'Outfit', sans-serif;
+}
+
+.transcript-row:last-child {
+    border-bottom: none;
+}
+
+.transcript-name {
+    flex: 1;
+    font-size: 14px;
+    color: #1a1a1a;
+}
+
+.transcript-date {
+    width: 200px;
+    text-align: right;
+    color: #1a1a1a;
+    font-size: 14px;
+}
