@@ -1,0 +1,124 @@
+.project-detail-container {
+    padding: 32px;
+    background-color: #f5f5f5;
+    min-height: 100vh;
+}
+
+.project-detail-header {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.back-button {
+    margin-bottom: 8px;
+}
+
+.project-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.project-info h1 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.back-btn {
+    background: none;
+    border: none;
+    color: #1a1a1a;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    padding: 8px 0;
+}
+
+.upload-btn {
+    background-color: #1a1a1a;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 100px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    transition: background-color 0.2s ease;
+}
+
+.upload-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    background-color: #cccccc;
+}
+
+.transcripts-table {
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+}
+
+.table-header {
+    display: flex;
+    padding: 16px 24px;
+    border-bottom: 1px solid #e0e0e0;
+    font-family: 'Outfit', sans-serif;
+}
+
+.header-name {
+    flex: 1;
+    font-weight: 500;
+}
+
+.header-date {
+    width: 200px;
+    text-align: right;
+    font-weight: 500;
+}
+
+.message {
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.error-message {
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
+}
+
+.success-message {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+}
+
+.no-transcripts {
+    padding: 24px;
+    text-align: center;
+    color: #666;
+    font-family: 'Outfit', sans-serif;
+}
+
+.generate-questions-btn, .save-questions-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+.generate-questions-btn:hover, .save-questions-btn:hover {
+    background-color: #0056b3;
+}

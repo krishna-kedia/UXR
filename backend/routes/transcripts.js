@@ -1,53 +1,114 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
+const pdfParse = require('pdf-parse');
+const mammoth = require('mammoth');
+const textract = require('textract');
 const Transcript = require('../models/transcriptModel');
-const auth = require('../middleware/auth');
 const Project = require('../models/projectModel');
+const auth = require('../middleware/auth');
 
-// Configure multer for memory storage
+// Configure multer for file upload
+const storage = multer.memoryStorage();
 const upload = multer({
-    storage: multer.memoryStorage(),
-    fileFilter: (req, file, cb) => {
-        // Check file type
-        const allowedTypes = ['application/pdf', 'application/msword', 'text/plain'];
-        if (allowedTypes.includes(file.mimetype)) {
-            cb(null, true);
-        } else {
-            cb(new Error('Invalid file type. Only PDF, DOC, and TXT files are allowed.'));
-        }
+  storage: storage,
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = {
+      'application/pdf': true,
+      'application/msword': true,
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': true,
+      'audio/mpeg': true,
+      'audio/mp4': true,
+      'audio/wav': true,
+      'text/plain': true
+    };
+    
+    if (allowedTypes[file.mimetype]) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only PDF, DOC, DOCX, MP3, MP4, WAV, and TXT files are allowed.'));
     }
+  },
+  limits: {
+    fileSize: 50 * 1024 * 1024 // 50MB limit
+  }
 });
 
-// Upload transcript
+// Helper function to extract text based on file type
+async function extractTextFromFile(file) {
+  const fileType = file.mimetype;
+  
+  // Only process document files
+  if (!['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(fileType)) {
+    return null;
+  }
+  
+  try {
+    switch (fileType) {
+      case 'application/pdf':
+        const pdfData = await pdfParse(file.buffer);
+        return pdfData.text;
+        
+      case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+        const docxResult = await mammoth.extractRawText({ buffer: file.buffer });
+        return docxResult.value;
+        
+      case 'application/msword':
+        return new Promise((resolve, reject) => {
+          textract.fromBufferWithMime(fileType, file.buffer, (error, text) => {
+            if (error) reject(error);
+            resolve(text);
+          });
+        });
+        
+      default:
+        return null;
+    }
+  } catch (error) {
+    console.error('Text extraction error:', error);
+    return null; // Return null instead of throwing error to handle gracefully
+  }
+}
+
+// Upload transcript endpoint
 router.post('/upload', auth, upload.single('transcript'), async (req, res) => {
     try {
-        if (!req.file) {
-            return res.status(400).json({ error: 'No file uploaded' });
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+  
+      // Extract text only for document files
+      const extractedText = await extractTextFromFile(req.file);
+  
+      const transcript = new Transcript({
+        transcriptName: req.body.transcriptName || req.file.originalname,
+        transcriptDate: new Date(),
+        content: req.file.buffer,  // Store original file content
+        fileType: req.file.mimetype,
+        fileName: req.file.originalname,
+        text: extractedText
+      });
+  
+      await transcript.save();
+  
+      res.status(201).json({
+        message: 'Transcript uploaded successfully',
+        transcript: {
+          id: transcript._id,
+          transcriptName: transcript.transcriptName,
+          transcriptDate: transcript.transcriptDate,
+          fileType: transcript.fileType,
+          fileName: transcript.fileName,
+          hasText: !!transcript.text,
+          createdAt: transcript.createdAt
         }
-
-        const transcript = new Transcript({
-            transcriptName: req.body.transcriptName || req.file.originalname,
-            transcriptDate: new Date(),
-            content: req.file.buffer // Adding content field to store the file
-        });
-
-        await transcript.save();
-
-        res.status(201).json({
-            message: 'Transcript uploaded successfully',
-            transcript: {
-                id: transcript._id,
-                transcriptName: transcript.transcriptName,
-                transcriptDate: transcript.transcriptDate,
-                createdAt: transcript.createdAt
-            }
-        });
+      });
+  
     } catch (error) {
-        console.error('Upload error:', error);
-        res.status(500).json({ error: error.message });
+      console.error('Upload error:', error);
+      res.status(500).json({ error: error.message });
     }
-});
+  });
 
 // Get all transcripts
 router.get('/', auth, async (req, res) => {
@@ -143,4 +204,5 @@ router.get('/project/:projectId', auth, async (req, res) => {
     }
 });
 
-module.exports = router; 
+
+module.exports = router;

@@ -7,6 +7,7 @@ const cors = require('cors');
 require('dotenv').config();
 const transcriptRoutes = require('./routes/transcripts');
 const projectRoutes = require('./routes/projects');
+const questionRoutes = require('./routes/questions');
 
 const app = express();
 app.use(cors({
@@ -34,7 +35,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/transcripts', transcriptRoutes);
 app.use('/api/projects', projectRoutes);
-
+app.use('/api/questions', questionRoutes);
 // Add a test route to verify the server is working
 app.get('/api/test', (req, res) => {
     res.json({ message: 'Server is working!' });

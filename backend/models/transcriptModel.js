@@ -1,4 +1,3 @@
-// backend/models/transcriptModel.js
 const mongoose = require('mongoose');
 
 const transcriptSchema = new mongoose.Schema(
@@ -15,8 +14,21 @@ const transcriptSchema = new mongoose.Schema(
     lastProcessingDate: {
       type: Date,
     },
-    content: {
+    content: {  // Store original file content as Buffer
       type: Buffer,
+      required: true
+    },
+    fileType: {
+      type: String,
+      required: true
+    },
+    text: {
+      type: String,
+      default: null
+    },
+    fileName: {
+      type: String,
+      required: true
     }
   },
   { timestamps: true }

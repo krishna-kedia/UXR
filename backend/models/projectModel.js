@@ -8,7 +8,6 @@ const projectSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    // An array of Question _ids
     questions: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -16,17 +15,22 @@ const projectSchema = new mongoose.Schema(
       },
     ],
     transcripts: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: 'Transcript',
-        },
-      ],
-    
-    // The user who created this project
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Transcript',
+      },
+    ],
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
+    },
+    questionsCreatedDateTime: {
+      type: Date,
+    },
+    pastQuestions: {
+      type: [String],
+      default: [],
     },
   },
   { timestamps: true }

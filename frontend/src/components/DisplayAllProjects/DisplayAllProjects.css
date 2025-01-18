@@ -1,0 +1,54 @@
+.project-row {
+    display: flex;
+    padding: 16px 24px;
+    border-bottom: 1px solid #e0e0e0;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    font-family: 'Outfit', sans-serif;
+    align-items: center;
+    background-color: white;
+}
+
+.project-row:hover {
+    background-color: #f5f5f5;
+}
+
+.project-name {
+    flex: 1;
+    font-weight: 400;
+}
+
+.project-transcripts {
+    width: 150px;
+    text-align: center;
+}
+
+.project-date {
+    width: 150px;
+    text-align: right;
+}
+
+.table-header {
+    display: flex;
+    padding: 16px 24px;
+    background-color: white;
+    border-bottom: 1px solid #e0e0e0;
+    font-family: 'Outfit', sans-serif;
+}
+
+.header-name {
+    flex: 1;
+    font-weight: 500;
+}
+
+.header-transcripts {
+    width: 150px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.header-date {
+    width: 150px;
+    text-align: right;
+    font-weight: 500;
+} 

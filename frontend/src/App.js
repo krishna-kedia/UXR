@@ -2,20 +2,23 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/LoginPage/Login';
-import HomePage from './pages/HomePage/HomePage';
+import ProjectPage from './pages/ProjectPage/ProjectPage';
+import IndividualProjectPage from './pages/IndividualProjectPage/IndividualProjectPage';
 import QuestionsPage from './pages/QuestionsPage/QuestionsPage';
 import Sidebar from './components/Sidebar/Sidebar';
 import Navbar from './components/Navbar/Navbar';
 import './App.css';
+import AnalysisPage from './pages/AnalysisPage/AnalysisPage';
 
-function MainLayout({ children }) {
+// Layout for authenticated pages with sidebar and navbar
+function AuthenticatedLayout({ children }) {
   return (
     <div className="app-container">
       <div className="sidebar-container">
         <Sidebar />
       </div>
       <div className="pages-container">
-        <Navbar />
+        {/* <Navbar /> */}
         <main className="main-content">
           {children}
         </main>
@@ -24,7 +27,7 @@ function MainLayout({ children }) {
   );
 }
 
-// Create a layout component for the login page
+// Layout for the login page (no sidebar/navbar)
 function LoginLayout({ children }) {
   return (
     <div className="login-layout">
@@ -33,41 +36,44 @@ function LoginLayout({ children }) {
   );
 }
 
-// Wrapper component to choose the appropriate layout
-function AppContent() {
-  return (
-    <MainLayout>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/calls" element={<div>Calls Page</div>} />
-        <Route path="/analysis" element={<div>Analysis Page</div>} />
-        <Route path="/chat" element={<div>Chat Page</div>} />
-        <Route path="/questions" element={<QuestionsPage />} />
-        <Route path="/notes" element={<div>Notes Page</div>} />
-      </Routes>
-    </MainLayout>
-  );
-}
-
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Public Routes */}
-          <Route path="/login" element={<Login />} />
-          
-          {/* Protected Routes */}
+          {/* Public route */}
+          <Route 
+            path="/login" 
+            element={
+              <LoginLayout>
+                <Login />
+              </LoginLayout>
+            } 
+          />
+
+          {/* Protected routes */}
           <Route
-            path="/"
             element={
               <ProtectedRoute>
-                <AppContent />
+                <AuthenticatedLayout>
+                  <Routes>
+                    <Route path="/" element={<Navigate to="/projects" replace />} />
+                    <Route path="/projects" element={<ProjectPage />} />
+                    <Route path="/project/:projectId" element={<IndividualProjectPage />} />
+                    <Route path="/questions" element={<QuestionsPage />} />
+                    <Route path="/calls" element={<div>Calls Page</div>} />
+                    <Route path="/analysis" element={<div>Analysis Page</div>} />
+                    <Route path="/chat" element={<div>Chat Page</div>} />
+                    <Route path="/notes" element={<div>Notes Page</div>} />
+                    <Route path="/analysis/:projectId" element={<AnalysisPage />} />
+                  </Routes>
+                </AuthenticatedLayout>
               </ProtectedRoute>
             }
+            path="/*"
           />
-          
-          {/* Redirect all other routes to home */}
+
+          {/* Catch all other routes and redirect */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
