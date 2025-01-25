@@ -51,6 +51,7 @@
     max-width: 300px;
     white-space: pre-wrap;
     word-wrap: break-word;
+    vertical-align: top;
 }
 
 .analysis-empty-state {
@@ -101,4 +102,10 @@
     height: 100%;
     width: 5px;
     background: linear-gradient(to left, rgba(0,0,0,0.1), transparent);
+}
+
+.no-data-message {
+    color: #666;
+    font-style: italic;
+    text-align: center;
 } 

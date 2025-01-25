@@ -5,6 +5,8 @@ import QuestionBox from '../../components/QuestionBox/QuestionBox';
 import './IndividualProjectPage.css';
 import CreateQuestionOverlay from '../../components/CreateQuestionOverlay/CreateQuestionOverlay';
 import axios from 'axios';
+import UploadOptionsMenu from '../../components/UploadOptionsMenu/UploadOptionsMenu';
+import InviteBotDialog from '../../components/InviteBotDialog/InviteBotDialog';
 
 function IndividualProjectPage() {
     const fileInputRef = useRef(null);
@@ -15,6 +17,7 @@ function IndividualProjectPage() {
     const [projectName, setProjectName] = useState('');
     const [questions, setQuestions] = useState([]);
     const [showOverlay, setShowOverlay] = useState(false);
+    const [showBotDialog, setShowBotDialog] = useState(false);
     const { projectId } = useParams();
     const navigate = useNavigate();
 
@@ -225,6 +228,9 @@ function IndividualProjectPage() {
 
     return (
         <div className="project-detail-container">
+            <div className='project-chat-container'>
+            This is where chat will come
+            </div>
             <div className="project-detail-header">
                 <div className="back-button">
                     <button 
@@ -236,13 +242,11 @@ function IndividualProjectPage() {
                 </div>
                 <div className="project-info">
                     <h1>{projectName}</h1>
-                    <button 
-                        className="upload-btn" 
-                        onClick={handleUploadClick}
-                        disabled={isUploading}
-                    >
-                        {isUploading ? 'Uploading...' : 'Add new transcript'}
-                    </button>
+                    <UploadOptionsMenu 
+                        onUploadClick={handleUploadClick}
+                        onBotInvite={() => setShowBotDialog(true)}
+                        isUploading={isUploading}
+                    />
                     <input
                         type="file"
                         ref={fileInputRef}
@@ -290,7 +294,6 @@ function IndividualProjectPage() {
             <button 
                 className="generate-questions-btn" 
                 onClick={() => setShowOverlay(true)}
-                //onClick={handleGenerateQuestions}
                 title="this is a sample tooltip"
             >
                 Generate Questions
@@ -316,6 +319,14 @@ function IndividualProjectPage() {
                 <button className="save-questions-btn" onClick={handleSaveQuestions}>
                     Save Questions
                 </button>
+            )}
+
+            {showBotDialog && (
+                <InviteBotDialog
+                    open={showBotDialog}
+                    onClose={() => setShowBotDialog(false)}
+                    projectId={projectId}
+                />
             )}
         </div>
     );

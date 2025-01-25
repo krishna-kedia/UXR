@@ -11,9 +11,10 @@ function AnalysisPage() {
     const [errorColumns, setErrorColumns] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
     const { projectId } = useParams();
 
-    const fetchAnswersForTranscript = async (transcript, questionsList) => {
+    const analyzeTranscript = async (transcript, questionsList) => {
         setLoadingColumns(prev => ({ ...prev, [transcript._id]: true }));
         setErrorColumns(prev => ({ ...prev, [transcript._id]: false }));
 
@@ -40,29 +41,47 @@ function AnalysisPage() {
             }
 
             const data = await response.json();
+
+            // Update transcript's ActiveQuestionsAnswers
+            await fetch('http://localhost:5001/api/transcripts/updateQA', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    transcriptId: transcript._id,
+                    qaObject: data
+                })
+            });
+
             setAnswers(prev => ({
                 ...prev,
                 [transcript._id]: data
             }));
         } catch (error) {
-            console.error('Error fetching answers:', error);
+            console.error('Error analyzing transcript:', error);
             setErrorColumns(prev => ({ ...prev, [transcript._id]: true }));
         } finally {
             setLoadingColumns(prev => ({ ...prev, [transcript._id]: false }));
         }
     };
 
-    const handleRetryColumn = async (transcriptId) => {
-        const transcript = transcripts.find(t => t._id === transcriptId);
-        if (transcript) {
-            await fetchAnswersForTranscript(transcript, questions);
+    const handleAnalyzeAll = async () => {
+        setIsAnalyzing(true);
+        try {
+            await Promise.all(transcripts.map(transcript => 
+                analyzeTranscript(transcript, questions)
+            ));
+        } finally {
+            setIsAnalyzing(false);
         }
     };
 
     useEffect(() => {
         const fetchProjectDetails = async () => {
             try {
-                // Fetch project details
+                // 1. Fetch project details first
                 const projectResponse = await fetch(`http://localhost:5001/api/projects/${projectId}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -76,7 +95,7 @@ function AnalysisPage() {
                 const projectData = await projectResponse.json();
                 console.log('Project Data:', projectData);
 
-                // Fetch questions for this project
+                // 2. Fetch questions for this project
                 const questionsResponse = await fetch(`http://localhost:5001/api/questions/project/${projectId}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -87,42 +106,37 @@ function AnalysisPage() {
                     throw new Error('Failed to fetch questions');
                 }
 
-                const questionsData = await questionsResponse.json();
-                console.log('Questions Data:', questionsData);
-
-                // Fetch transcripts
-                const transcriptResponse = await fetch(`http://localhost:5001/api/transcripts/project/${projectId}`, {
+                // 3. Fetch transcripts for this project
+                const transcriptsResponse = await fetch(`http://localhost:5001/api/transcripts/project/${projectId}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
 
-                if (!transcriptResponse.ok) {
+                if (!transcriptsResponse.ok) {
                     throw new Error('Failed to fetch transcripts');
                 }
 
-                const transcriptData = await transcriptResponse.json();
-                console.log('Transcript Data:', transcriptData);
+                const questionsData = await questionsResponse.json();
+                const transcriptsData = await transcriptsResponse.json();
 
-                // Set the states with proper data mapping
+                console.log('Questions Data:', questionsData);
+                console.log('Transcripts Data:', transcriptsData);
+
+                // Process the data
                 const questionsList = questionsData.map(q => q.question) || [];
-                const transcriptsList = transcriptData.map(t => ({
-                    name: t.transcriptName,
-                    content: t.content,
-                    _id: t._id
-                })) || [];
-
-                console.log('Processed Questions:', questionsList);
-                console.log('Processed Transcripts:', transcriptsList);
+                const transcriptsList = transcriptsData || [];
 
                 setQuestions(questionsList);
                 setTranscripts(transcriptsList);
 
-                // Start fetching answers for each transcript
-                transcriptsList.forEach(transcript => {
-                    fetchAnswersForTranscript(transcript, questionsList);
-                });
-                
+                // Set initial answers from ActiveQuestionsAnswers
+                const initialAnswers = transcriptsList.reduce((acc, transcript) => {
+                    acc[transcript._id] = transcript.ActiveQuestionsAnswers || {};
+                    return acc;
+                }, {});
+                setAnswers(initialAnswers);
+
             } catch (error) {
                 console.error('Error fetching data:', error);
                 setError(error.message);
@@ -141,14 +155,23 @@ function AnalysisPage() {
 
     return (
         <div className="analysis-page">
-            <h1>Analysis</h1>
+            <div className="analysis-header">
+                <h1>Analysis</h1>
+                <button 
+                    className="analyze-all-btn"
+                    onClick={handleAnalyzeAll}
+                    disabled={isAnalyzing}
+                >
+                    {isAnalyzing ? 'Analyzing...' : 'Analyse data again'}
+                </button>
+            </div>
             <AnalysisTable 
                 questions={questions} 
                 transcripts={transcripts}
                 answers={answers}
                 loadingColumns={loadingColumns}
                 errorColumns={errorColumns}
-                onRetryColumn={handleRetryColumn}
+                onAnalyzeColumn={analyzeTranscript}
             />
         </div>
     );

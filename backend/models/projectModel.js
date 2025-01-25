@@ -24,10 +24,14 @@ const projectSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
-    },
+    },  
     questionsCreatedDateTime: {
       type: Date,
     },
+    bot_session_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'BotSession'
+  },
     pastQuestions: {
       type: [String],
       default: [],

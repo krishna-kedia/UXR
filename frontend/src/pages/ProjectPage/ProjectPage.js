@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import NewProjectDialogueBox from '../../components/NewProjectDialogueBox/NewProjectDialogueBox';
 import DisplayAllProjects from '../../components/DisplayAllProjects/DisplayAllProjects';
+import ProjectList from '../../components/ProjectList/ProjectList';
 import './ProjectPage.css';
 
 function ProjectPage() {
@@ -48,7 +49,7 @@ function ProjectPage() {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
-                body: JSON.stringify({ projectName, createdBy: userId })
+                body: JSON.stringify({ projectName, userId })
             });
 
             const data = await response.json();
@@ -71,10 +72,14 @@ function ProjectPage() {
         fetchProjects();
     }, []);
 
+    const handleUploadNew = () => {
+        // Handle upload new project logic
+    };
+
     return (
         <div className="project-container">
             <div className="project-header">
-                <h1>Projects</h1>
+                <h1>Welcome {JSON.parse(localStorage.getItem('user')).firstName}, here are your active projects</h1>
                 <button 
                     className="new-project-btn"
                     onClick={() => setShowDialogue(true)}
@@ -94,28 +99,7 @@ function ProjectPage() {
                 </div>
             )}
 
-            <div className="projects-table">
-                <div className="table-header">
-                    <div className="header-name">Project Name</div>
-                    <div className="header-transcripts">Transcripts</div>
-                    <div className="header-date">Created On</div>
-                </div>
-                
-                <div className="table-content">
-                    {projects.length > 0 ? (
-                        projects.map((project) => (
-                            <DisplayAllProjects
-                                key={project._id}
-                                project={project}
-                            />
-                        ))
-                    ) : (
-                        <div className="no-projects">
-                            No projects available
-                        </div>
-                    )}
-                </div>
-            </div>
+            <ProjectList projects={projects} onUploadNew={handleUploadNew} />
 
             {showDialogue && (
                 <NewProjectDialogueBox

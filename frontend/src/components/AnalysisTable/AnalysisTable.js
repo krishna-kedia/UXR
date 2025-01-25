@@ -6,8 +6,8 @@ function AnalysisTable({
     transcripts, 
     answers, 
     loadingColumns, 
-    errorColumns, 
-    onRetryColumn 
+    errorColumns,
+    onAnalyzeColumn 
 }) {
     if (!questions?.length || !transcripts?.length) {
         return (
@@ -23,20 +23,24 @@ function AnalysisTable({
                 <thead>
                     <tr>
                         <th className="corner-header"></th>
-                        {transcripts.map((transcript, index) => (
-                            <th key={index} className="column-header">
-                                {transcript.name}
-                                {loadingColumns[transcript._id] && (
-                                    <div className="column-loading">Loading...</div>
-                                )}
-                                {errorColumns[transcript._id] && (
-                                    <button 
-                                        className="retry-button"
-                                        onClick={() => onRetryColumn(transcript._id)}
-                                    >
-                                        Retry
-                                    </button>
-                                )}
+                        {transcripts.map((transcript) => (
+                            <th key={transcript._id} className="column-header">
+                                <div className="column-header-content">
+                                    {transcript.transcriptName}
+                                    {loadingColumns[transcript._id] && (
+                                        <div className="column-loading">Analyzing...</div>
+                                    )}
+                                    {!answers[transcript._id] || 
+                                     Object.keys(answers[transcript._id]).length === 0 ? (
+                                        <button 
+                                            className="analyze-column-btn"
+                                            onClick={() => onAnalyzeColumn(transcript, questions)}
+                                            disabled={loadingColumns[transcript._id]}
+                                        >
+                                            Analyse now
+                                        </button>
+                                    ) : null}
+                                </div>
                             </th>
                         ))}
                     </tr>
@@ -45,11 +49,24 @@ function AnalysisTable({
                     {questions.map((question, rowIndex) => (
                         <tr key={rowIndex}>
                             <th className="row-header">{question}</th>
-                            {transcripts.map((transcript) => (
-                                <td key={transcript._id} className="table-cell">
-                                    {answers[transcript._id]?.[rowIndex + 1] || ''}
-                                </td>
-                            ))}
+                            {transcripts.map((transcript) => {
+                                const hasData = answers[transcript._id] && 
+                                              Object.keys(answers[transcript._id]).length > 0;
+                                
+                                return (
+                                    <td key={transcript._id} className="table-cell">
+                                        {hasData ? (
+                                            answers[transcript._id]?.[rowIndex + 1] || ''
+                                        ) : (
+                                            rowIndex === 0 ? (
+                                                <div className="no-data-message">
+                                                    No data available for this transcript
+                                                </div>
+                                            ) : null
+                                        )}
+                                    </td>
+                                );
+                            })}
                         </tr>
                     ))}
                 </tbody>

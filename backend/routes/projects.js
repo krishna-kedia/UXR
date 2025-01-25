@@ -3,6 +3,7 @@ const router = express.Router();
 const Project = require('../models/projectModel');
 const Question = require('../models/questionModel');
 const auth = require('../middleware/auth');
+const User = require('../models/userModel');
 
 // FetchAllProjects: Get all projects for authenticated user
 router.get('/', auth, async (req, res) => {
@@ -56,27 +57,30 @@ router.patch('/:projectId/transcripts', auth, async (req, res) => {
 // Create new project
 router.post('/', auth, async (req, res) => {
     try {
-        const { projectName, createdBy } = req.body;
+        const { projectName, userId } = req.body;
+        console.log(userId);
+        // Create initial empty questions
+        const initialQuestions = Array(10).fill().map(() => new Question({ question: '' }));
+        const savedQuestions = await Question.insertMany(initialQuestions);
 
-        if (!projectName || !createdBy) {
-            return res.status(400).json({ error: 'Project name and creator are required' });
-        }
-
-        // Create 10 blank questions
-        const blankQuestions = Array.from({ length: 10 }, () => ({ question: '' }));
-        const newQuestions = await Question.insertMany(blankQuestions);
-        const questionIds = newQuestions.map(q => q._id);
-
-        // Create the project with the blank question IDs
-        const newProject = new Project({
+        // Create new project
+        const project = new Project({
             projectName,
-            createdBy,
-            questions: questionIds
+            questions: savedQuestions.map(q => q._id),
+            createdBy: userId,
+            questionsCreatedDateTime: null
         });
 
-        await newProject.save();
+        const savedProject = await project.save();
 
-        res.status(201).json(newProject);
+        // Update user's projects array
+        await User.findByIdAndUpdate(
+            userId,
+            { $push: { projects: savedProject._id } },
+            { new: true }
+        );
+
+        res.status(201).json(savedProject);
     } catch (error) {
         console.error('Error creating project:', error);
         res.status(500).json({ error: 'Internal server error' });

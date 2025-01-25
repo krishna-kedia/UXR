@@ -29,6 +29,22 @@ const transcriptSchema = new mongoose.Schema(
     fileName: {
       type: String,
       required: true
+    },
+    ActiveQuestionsAnswers: {
+      type: Object,
+      default: {}
+    },
+    PastQuestionsArray: {
+      type: Array,
+      default: []
+    },
+    // file: {
+    //   type: File, 
+    //   default: null
+    // },
+    origin: {
+      type: String,
+      default: null
     }
   },
   { timestamps: true }

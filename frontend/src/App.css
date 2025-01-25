@@ -14,22 +14,33 @@
   
   /* Left sidebar container */
   .sidebar-container {
-    width: 280px; /* Increased from 250px to match the design */
     min-height: 100vh;
-    background-color: #1a1a1a;
     position: fixed;
   }
   
   /* Right side container for pages */
   .pages-container {
-    flex: 1;
-    margin-left: 280px; /* Match this with sidebar width */
+    margin-left: 60px;
+    padding: 20px;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    width: calc(100% - 60px);
+    transition: margin-left 0.3s ease;
   }
   
   /* Main content area below navbar */
   .main-content {
     flex: 1;
   }
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f5f5f5;
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+}

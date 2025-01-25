@@ -194,7 +194,7 @@ router.get('/project/:projectId', auth, async (req, res) => {
         // Then fetch all transcripts that belong to this project
         const transcripts = await Transcript.find({
             '_id': { $in: project.transcripts }
-        }).select('transcriptName transcriptDate createdAt');
+        });
 
         console.log('Found transcripts:', transcripts); // Debug log
         res.json(transcripts);
@@ -204,5 +204,38 @@ router.get('/project/:projectId', auth, async (req, res) => {
     }
 });
 
+// Update QA endpoint
+router.patch('/updateQA', auth, async (req, res) => {
+    const { transcriptId, qaObject } = req.body;
+
+    if (!transcriptId || !qaObject || typeof qaObject !== 'object') {
+        return res.status(400).json({ error: 'Invalid request data' });
+    }
+
+    try {
+        const transcript = await Transcript.findById(transcriptId);
+        if (!transcript) {
+            return res.status(404).json({ error: 'Transcript not found' });
+        }
+
+        // Push current ActiveQuestionsAnswers to PastQuestionsArray
+        const pastEntry = {
+            dateOfChange: Date.now(),
+            qaObject: transcript.ActiveQuestionsAnswers
+        };
+        transcript.PastQuestionsArray.push(pastEntry);
+
+        // Replace ActiveQuestionsAnswers with new qaObject
+        transcript.ActiveQuestionsAnswers = qaObject;
+
+        // Save the updated transcript
+        const updatedTranscript = await transcript.save();
+
+        res.json(updatedTranscript);
+    } catch (error) {
+        console.error('Error updating QA:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
 
 module.exports = router;

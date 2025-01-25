@@ -9,6 +9,7 @@ import Sidebar from './components/Sidebar/Sidebar';
 import Navbar from './components/Navbar/Navbar';
 import './App.css';
 import AnalysisPage from './pages/AnalysisPage/AnalysisPage';
+import ChatPage from './pages/ChatPage/ChatPage';
 
 // Layout for authenticated pages with sidebar and navbar
 function AuthenticatedLayout({ children }) {
@@ -63,7 +64,7 @@ function App() {
                     <Route path="/questions" element={<QuestionsPage />} />
                     <Route path="/calls" element={<div>Calls Page</div>} />
                     <Route path="/analysis" element={<div>Analysis Page</div>} />
-                    <Route path="/chat" element={<div>Chat Page</div>} />
+                    <Route path="/chat/:projectId" element={<ChatPage />} />
                     <Route path="/notes" element={<div>Notes Page</div>} />
                     <Route path="/analysis/:projectId" element={<AnalysisPage />} />
                   </Routes>
