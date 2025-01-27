@@ -3,8 +3,10 @@ import NewProjectDialogueBox from '../../components/NewProjectDialogueBox/NewPro
 import DisplayAllProjects from '../../components/DisplayAllProjects/DisplayAllProjects';
 import ProjectList from '../../components/ProjectList/ProjectList';
 import './ProjectPage.css';
+import { Navigate, useNavigate } from 'react-router-dom';
 
 function ProjectPage() {
+    const navigate = useNavigate();
     const [showDialogue, setShowDialogue] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
@@ -34,6 +36,7 @@ function ProjectPage() {
 
             const data = await response.json();
             setProjects(data);
+            console.log(data)
         } catch (error) {
             showMessage(error.message, true);
         }
@@ -53,10 +56,13 @@ function ProjectPage() {
             });
 
             const data = await response.json();
+            console.log(data)
 
             if (!response.ok) {
                 throw new Error(data.error || 'Failed to create project');
             }
+
+            navigate(`/project/${data._id}`);
 
             showMessage('Project created successfully!');
             setShowDialogue(false);
@@ -71,10 +77,6 @@ function ProjectPage() {
     useEffect(() => {
         fetchProjects();
     }, []);
-
-    const handleUploadNew = () => {
-        // Handle upload new project logic
-    };
 
     return (
         <div className="project-container">
@@ -99,7 +101,7 @@ function ProjectPage() {
                 </div>
             )}
 
-            <ProjectList projects={projects} onUploadNew={handleUploadNew} />
+            <ProjectList projects={projects} />
 
             {showDialogue && (
                 <NewProjectDialogueBox

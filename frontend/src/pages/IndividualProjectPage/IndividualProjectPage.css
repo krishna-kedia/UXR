@@ -122,3 +122,10 @@
 .generate-questions-btn:hover, .save-questions-btn:hover {
     background-color: #0056b3;
 }
+
+.loader-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}

@@ -71,7 +71,7 @@ async function extractTextFromFile(file) {
 }
 
 // Upload transcript endpoint
-router.post('/upload', auth, upload.single('transcript'), async (req, res) => {
+router.post('/upload/text', auth, upload.single('transcript'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: 'No file uploaded' });
@@ -83,7 +83,6 @@ router.post('/upload', auth, upload.single('transcript'), async (req, res) => {
       const transcript = new Transcript({
         transcriptName: req.body.transcriptName || req.file.originalname,
         transcriptDate: new Date(),
-        content: req.file.buffer,  // Store original file content
         fileType: req.file.mimetype,
         fileName: req.file.originalname,
         text: extractedText
@@ -110,18 +109,6 @@ router.post('/upload', auth, upload.single('transcript'), async (req, res) => {
     }
   });
 
-// Get all transcripts
-router.get('/', auth, async (req, res) => {
-    try {
-        const transcripts = await Transcript.find()
-            .select('transcriptName transcriptDate lastProcessingDate createdAt')
-            .sort('-createdAt');
-
-        res.json(transcripts);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
 
 // Get single transcript
 router.get('/:id', auth, async (req, res) => {

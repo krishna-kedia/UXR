@@ -39,6 +39,12 @@ function ProjectList({ projects }) {
                                 <Typography color="textSecondary">
                                     Updated {getTimeAgo(project.createdAt)}
                                 </Typography>
+                                <Typography color="textSecondary" className="dot-separator">
+                                    •
+                                </Typography>
+                                <Typography color="textSecondary">
+                                    Last processed {getTimeAgo(project.questionsCreatedDateTime)}
+                                </Typography>
                             </div>
                         </div>
                         <div className="project-actions">

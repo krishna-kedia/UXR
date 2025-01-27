@@ -7,6 +7,7 @@ import CreateQuestionOverlay from '../../components/CreateQuestionOverlay/Create
 import axios from 'axios';
 import UploadOptionsMenu from '../../components/UploadOptionsMenu/UploadOptionsMenu';
 import InviteBotDialog from '../../components/InviteBotDialog/InviteBotDialog';
+import Loader from '../../components/Loader/Loader';
 
 function IndividualProjectPage() {
     const fileInputRef = useRef(null);
@@ -20,6 +21,7 @@ function IndividualProjectPage() {
     const [showBotDialog, setShowBotDialog] = useState(false);
     const { projectId } = useParams();
     const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(true);
 
     // Maximum file size (50MB)
     const MAX_FILE_SIZE = 50 * 1024 * 1024;
@@ -44,6 +46,7 @@ function IndividualProjectPage() {
 
     const fetchProjectDetails = async () => {
         try {
+            setIsLoading(true);
             const response = await fetch(`http://localhost:5001/api/projects/${projectId}`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -56,7 +59,7 @@ function IndividualProjectPage() {
             
             const projectData = await response.json();
             setProjectName(projectData.projectName);
-            
+            console.log(projectData)
             // Fetch transcripts for this project
             const transcriptResponse = await fetch(`http://localhost:5001/api/transcripts/project/${projectId}`, {
                 headers: {
@@ -69,6 +72,7 @@ function IndividualProjectPage() {
             }
 
             const transcriptData = await transcriptResponse.json();
+            console.log(transcriptData)
 
             const formattedTranscripts = transcriptData.map(transcript => ({
                 _id: transcript._id,
@@ -90,6 +94,8 @@ function IndividualProjectPage() {
 
         } catch (error) {
             showMessage(error.message, true);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -165,28 +171,6 @@ function IndividualProjectPage() {
         }
     };
 
-    const handleGenerateQuestions = async () => {
-        setShowOverlay(true);
-        // try {
-        //     const response = await fetch('http://127.0.0.1:8000/generate-questions/', {
-        //         method: 'POST',
-        //         headers: {
-        //             'Content-Type': 'application/json'
-        //         },
-        //         body: JSON.stringify({ project_id: projectId })
-        //     });
-
-        //     if (!response.ok) {
-        //         throw new Error('Failed to generate questions');
-        //         console.log(response);
-        //     }
-
-        //     const data = await response.json();
-        //     setQuestions(Object.values(data));
-        // } catch (error) {
-        //     showMessage('Failed to generate questions', true);
-        // }
-    };
 
     const handleQuestionChange = (index, newText) => {
         const updatedQuestions = [...questions];
@@ -226,11 +210,38 @@ function IndividualProjectPage() {
         fetchProjectDetails();
     }, [projectId]);
 
+    const responsesArray = []; // Initialize an array to store responses
+
+const sendPostRequest = async () => {
+    try {
+        const response = await fetch('https://webhook.site/a3eaa4fd-179c-4b8b-b771-de5fdfb6a365', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ message: 'Hello, Webhook!' }) // Example payload
+        });
+
+        const data = await response.json();
+        responsesArray.push(data); // Push the response into the array
+        console.log('Response received:', data); // Log the response for debugging
+
+    } catch (error) {
+        console.error('Error sending POST request:', error);
+    }
+};
+
     return (
         <div className="project-detail-container">
-            <div className='project-chat-container'>
-            This is where chat will come
-            </div>
+            {isLoading ? (
+                <div className="loader-container">
+                    <Loader />
+                </div>
+            ) : (
+                <div className='project-chat-container'>
+                This is where chat will come
+                </div>
+            )}
             <div className="project-detail-header">
                 <div className="back-button">
                     <button 

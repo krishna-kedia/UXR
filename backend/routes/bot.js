@@ -35,8 +35,27 @@ router.post('/create', auth, async (req, res) => {
         }
 
         const data = await response.json();
+        const botSession = await BotSession.create({
+            bot_id: data.bot_id,
+            meeting_url: req.body.meeting_url,
+            user_id: req.user.id,
+            status: 'created'
+        });
+
+        // Create new transcript
+        const transcript = await Transcript.create({
+            transcriptName: req.body.meeting_name,
+            session_id: botSession._id,
+            origin: 'meeting_recording'
+        });
+
+
         
-        res.status(201).json({ bot_id: data.bot_id });
+        res.status(201).json({ 
+            bot_id: data.bot_id,
+            session_id: botSession._id,
+            transcript_id: transcript._id
+        });
 
     } catch (error) {
         console.error('Error creating bot:', error);

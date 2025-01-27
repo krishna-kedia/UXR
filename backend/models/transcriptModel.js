@@ -14,10 +14,6 @@ const transcriptSchema = new mongoose.Schema(
     lastProcessingDate: {
       type: Date,
     },
-    content: {  // Store original file content as Buffer
-      type: Buffer,
-      required: true
-    },
     fileType: {
       type: String,
       required: true
@@ -27,8 +23,7 @@ const transcriptSchema = new mongoose.Schema(
       default: null
     },
     fileName: {
-      type: String,
-      required: true
+      type: String
     },
     ActiveQuestionsAnswers: {
       type: Object,
@@ -44,7 +39,12 @@ const transcriptSchema = new mongoose.Schema(
     // },
     origin: {
       type: String,
-      default: null
+      default: null,
+      enum: ['user_uploaded', 'meeting_recording']
+    },
+    bot_session_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'BotSession'
     }
   },
   { timestamps: true }
