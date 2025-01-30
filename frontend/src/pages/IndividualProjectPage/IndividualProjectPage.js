@@ -59,7 +59,7 @@ function IndividualProjectPage() {
             
             const projectData = await response.json();
             setProjectName(projectData.projectName);
-            console.log(projectData)
+            console.log(projectData, "project data")
             // Fetch transcripts for this project
             const transcriptResponse = await fetch(`http://localhost:5001/api/transcripts/project/${projectId}`, {
                 headers: {
@@ -72,7 +72,7 @@ function IndividualProjectPage() {
             }
 
             const transcriptData = await transcriptResponse.json();
-            console.log(transcriptData)
+            console.log(transcriptData, "transcript data")
 
             const formattedTranscripts = transcriptData.map(transcript => ({
                 _id: transcript._id,
@@ -104,9 +104,9 @@ function IndividualProjectPage() {
             throw new Error('File size exceeds 50MB limit');
         }
 
-        if (!ALLOWED_TYPES[file.type]) {
-            throw new Error('Invalid file type. Only MP3, MP4, WAV, PDF, DOCX, and TXT files are allowed');
-        }
+        // if (!ALLOWED_TYPES[file.type]) {
+        //     throw new Error('Invalid file type. Only MP3, MP4, WAV, PDF, DOCX, and TXT files are allowed frontned ');
+        // }
 
         return true;
     };
@@ -129,7 +129,10 @@ function IndividualProjectPage() {
             const formData = new FormData();
             formData.append('transcript', file);
             formData.append('transcriptName', file.name);
+            formData.append('projectId', projectId)
+            formData.append('userId', localStorage.getItem('userId'));
 
+            //upload the new transcript
             const uploadResponse = await fetch('http://localhost:5001/api/transcripts/upload', {
                 method: 'POST',
                 headers: {
@@ -142,22 +145,6 @@ function IndividualProjectPage() {
 
             if (!uploadResponse.ok) {
                 throw new Error(uploadData.error || 'Upload failed');
-            }
-
-            // Link transcript to project
-            const updateResponse = await fetch(`http://localhost:5001/api/projects/${projectId}/transcripts`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({
-                    transcriptId: uploadData.transcript.id
-                })
-            });
-
-            if (!updateResponse.ok) {
-                throw new Error('Failed to link transcript to project');
             }
 
             showMessage('Transcript uploaded and added to project successfully!');
@@ -231,6 +218,8 @@ const sendPostRequest = async () => {
     }
 };
 
+const uploadData = JSON.parse(sessionStorage.getItem('uploadData'));
+
     return (
         <div className="project-detail-container">
             {isLoading ? (
@@ -257,6 +246,7 @@ const sendPostRequest = async () => {
                         onUploadClick={handleUploadClick}
                         onBotInvite={() => setShowBotDialog(true)}
                         isUploading={isUploading}
+                        projectId={projectId}
                     />
                     <input
                         type="file"
@@ -279,28 +269,30 @@ const sendPostRequest = async () => {
                 </div>
             )}
 
-            <div className="transcripts-table" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                <div className="table-header">
-                    <div className="header-name">Name</div>
-                    <div className="header-date">Uploaded On</div>
-                </div>
-                
-                <div className="table-content">
-                    {transcripts.length > 0 ? (
-                        transcripts.map((transcript) => (
+
+               <div className="transcript_container">
+        
+                        {transcripts.map((transcript) => (
                             <TranscriptDetails
                                 key={transcript._id}
                                 transcript={transcript}
                                 onDelete={fetchProjectDetails}
                             />
-                        ))
-                    ) : (
-                        <div className="no-transcripts">
-                            No transcripts available
-                        </div>
-                    )}
+                        ))}
+                        {uploadData && uploadData.processing && (
+    <TranscriptDetails
+        transcript={{
+            name: uploadData.transcriptName,
+            numberOfPeople: '',
+            duration: '',
+            origin: '',
+            processing: true
+        }}
+    />
+)}
+                    
                 </div>
-            </div>
+
 
             <button 
                 className="generate-questions-btn" 

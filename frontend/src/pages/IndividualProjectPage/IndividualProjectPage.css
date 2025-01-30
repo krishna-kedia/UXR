@@ -56,13 +56,9 @@
     background-color: #cccccc;
 }
 
-.transcripts-table {
-    background-color: white;
-    border-radius: 8px;
-    overflow: hidden;
-    max-height: 300px;
-    overflow-y: auto;
-    margin-bottom: 20px;
+.transcript_container{
+    display: flex;
+    
 }
 
 .table-header {

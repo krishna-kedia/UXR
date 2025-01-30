@@ -1,14 +1,17 @@
 import React from 'react';
 import { Videocam, Person } from '@mui/icons-material'; // Using MUI icons
 import './TranscriptDetails.css';
+import image from './images.jpeg'
 
-const TranscriptDetails = ({ 
+
+const TranscriptDetails = ({   
     transcript: { 
         name, 
         numberOfPeople, 
         duration, 
         origin, 
-        imageUrl = 'https://placeholder.co/400x200' // default placeholder
+        imageUrl = image,
+        processing
     } 
 }) => {
     const getOriginIcon = (origin) => {
@@ -23,11 +26,12 @@ const TranscriptDetails = ({
         <div className="transcript-card">
             <div className="transcript-image">
                 <img src={imageUrl} alt={name} />
+                {processing && <div className="overlay"><span className="recording-icon">🔴</span></div>}
             </div>
             <div className="transcript-content">
                 <div className="transcript-header">
                     <h3 className="transcript-name">{name}</h3>
-                    {getOriginIcon(origin)}
+                    {!processing && getOriginIcon(origin)}
                 </div>
                 <div className="transcript-details">
                     <div className="detail-item">

@@ -16,11 +16,10 @@ const transcriptSchema = new mongoose.Schema(
     },
     fileType: {
       type: String,
-      required: true
     },
     text: {
-      type: String,
-      default: null
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'TranscriptText'
     },
     fileName: {
       type: String
@@ -32,6 +31,14 @@ const transcriptSchema = new mongoose.Schema(
     PastQuestionsArray: {
       type: Array,
       default: []
+    },
+    s3Key: {
+      type: String,
+      default: null
+    },
+    s3Url: {
+      type: String,
+      default: null
     },
     // file: {
     //   type: File, 

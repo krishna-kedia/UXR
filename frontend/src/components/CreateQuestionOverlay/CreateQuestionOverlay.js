@@ -27,6 +27,7 @@ function CreateQuestionOverlay({ onClose, projectId, onSave }) {
             }
 
             const data = await response.json();
+            console.log(data)
             setQuestions(Object.values(data));
         } catch (error) {
             setError('Uh oh! Something went wrong. Please try again.');
