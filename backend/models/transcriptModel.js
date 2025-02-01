@@ -52,6 +52,10 @@ const transcriptSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'BotSession'
     },
+    questions: {
+      type: Object,
+      default: {}
+    },
     metadata: {
       no_of_people: {
         type: Number,

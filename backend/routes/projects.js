@@ -56,34 +56,69 @@ router.patch('/:projectId/transcripts', auth, async (req, res) => {
 
 // Create new project
 router.post('/', auth, async (req, res) => {
+    let createdQuestions = [];
+    let createdProject = null;
+    let userUpdated = false;
+
     try {
         const { projectName, userId } = req.body;
-        console.log(userId);
+
         // Create initial empty questions
         const initialQuestions = Array(10).fill().map(() => new Question({ question: '' }));
-        const savedQuestions = await Question.insertMany(initialQuestions);
+        createdQuestions = await Question.insertMany(initialQuestions);
 
         // Create new project
         const project = new Project({
             projectName,
-            questions: savedQuestions.map(q => q._id),
+            questions: createdQuestions.map(q => q._id),
             createdBy: userId,
             questionsCreatedDateTime: null
         });
 
-        const savedProject = await project.save();
+        createdProject = await project.save();
 
         // Update user's projects array
         await User.findByIdAndUpdate(
             userId,
-            { $push: { projects: savedProject._id } },
+            { $push: { projects: createdProject._id } },
             { new: true }
         );
+        userUpdated = true;
 
-        res.status(201).json(savedProject);
+        res.status(201).json(createdProject);
+
     } catch (error) {
         console.error('Error creating project:', error);
-        res.status(500).json({ error: 'Internal server error' });
+
+        // Cleanup in reverse order
+        try {
+            // 1. Remove project reference from user if it was added
+            if (userUpdated && userId && createdProject) {
+                await User.findByIdAndUpdate(
+                    userId,
+                    { $pull: { projects: createdProject._id } }
+                );
+            }
+
+            // 2. Delete the created project if it exists
+            if (createdProject) {
+                await Project.findByIdAndDelete(createdProject._id);
+            }
+
+            // 3. Delete all created questions
+            if (createdQuestions.length > 0) {
+                await Question.deleteMany({
+                    _id: { $in: createdQuestions.map(q => q._id) }
+                });
+            }
+        } catch (cleanupError) {
+            console.error('Error during cleanup:', cleanupError);
+        }
+
+        // Send error response
+        res.status(500).json({ 
+            error: 'Failed to create project. All changes have been rolled back.' 
+        });
     }
 });
 

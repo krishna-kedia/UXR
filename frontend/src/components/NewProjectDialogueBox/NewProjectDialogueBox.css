@@ -78,4 +78,39 @@
 
 .submit-btn:hover {
     background-color: #333333;
+}
+
+.new-project-dialog .dialog-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    color: #1a1a1a;
+    font-weight: 500;
+}
+
+.new-project-dialog .close-button {
+    color: #666;
+}
+
+.new-project-dialog .dialog-actions {
+    padding: 16px 24px;
+    gap: 8px;
+}
+
+.new-project-dialog .cancel-button {
+    color: #666;
+}
+
+/* Override Material-UI styles */
+.new-project-dialog .MuiDialog-paper {
+    border-radius: 8px;
+}
+
+.new-project-dialog .MuiDialogContent-root {
+    padding: 0 24px;
+}
+
+.new-project-dialog .MuiTextField-root {
+    margin: 8px 0;
 } 

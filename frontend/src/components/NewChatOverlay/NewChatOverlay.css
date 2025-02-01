@@ -1,0 +1,208 @@
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.overlay-content {
+    background-color: white;
+    border-radius: 12px;
+    width: 600px;
+    max-width: 90%;
+    padding: 24px;
+}
+
+.chat-dialog-header {
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.chat-dialog-header h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #6B7280;
+    padding: 4px;
+}
+
+.chat-type-selector {
+    display: flex;
+    width: 100%;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.type-button {
+    flex: 1;
+    padding: 16px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-size: 14px;
+    color: #6B7280;
+    transition: all 0.2s ease;
+}
+
+.type-button.active {
+    color: #0066CC;
+    border-bottom: 2px solid #0066CC;
+}
+
+.selection-container {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.dropdown-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.search-input {
+    padding: 12px;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.dropdown {
+    padding: 12px;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.error-message {
+    color: #DC2626;
+    font-size: 14px;
+    padding: 0 24px 16px;
+}
+
+/* Override Material-UI styles */
+.MuiDialog-paper {
+    border-radius: 12px !important;
+    max-width: 500px !important;
+}
+
+.MuiDialogContent-root {
+    padding: 0 !important;
+}
+
+.MuiDialogActions-root {
+    padding: 16px 24px !important;
+    border-top: 1px solid #E5E7EB;
+}
+
+.MuiTextField-root {
+    background-color: white;
+}
+
+.MuiOutlinedInput-root {
+    border-radius: 8px !important;
+}
+
+/* Custom button styles */
+.action-button {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+}
+
+.cancel-button {
+    background: none;
+    color: #6B7280;
+}
+
+.start-button {
+    background-color: #0066CC;
+    color: white;
+}
+
+.start-button:disabled {
+    background-color: #E5E7EB;
+    cursor: not-allowed;
+}
+
+.chat-tabs {
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.chat-tabs .MuiTab-root {
+    text-transform: none;
+    font-family: 'Outfit', sans-serif;
+    font-size: 16px;
+    color: #666;
+    padding: 16px;
+    min-height: auto;
+}
+
+.chat-tabs .Mui-selected {
+    color: #1a1a1a;
+    font-weight: 500;
+}
+
+.chat-tabs .MuiTabs-indicator {
+    background-color: #1a1a1a;
+    height: 2px;
+}
+
+.form-container {
+    padding: 24px 0;
+}
+
+/* Override Material-UI Dialog styles */
+.MuiDialog-paper {
+    border-radius: 12px !important;
+}
+
+.MuiDialogContent-root {
+    padding: 0 24px !important;
+}
+
+.MuiDialogActions-root {
+    padding: 16px 24px !important;
+    border-top: 1px solid #e0e0e0;
+}
+
+/* Form fields styling */
+.MuiFormControl-root {
+    margin-bottom: 16px !important;
+}
+
+.MuiInputBase-root {
+    background-color: white;
+}
+
+.MuiButton-contained {
+    text-transform: none !important;
+    font-weight: 500 !important;
+    padding: 6px 16px !important;
+}
+
+.MuiButton-root {
+    text-transform: none !important;
+}

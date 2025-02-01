@@ -33,6 +33,10 @@ const userSchema = new mongoose.Schema(
       default: 'user',
       // e.g., enum: ['user', 'admin'], if you want to limit roles
     },
+    chatSessions: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ChatSession'
+  }],
     // An array of Project _ids
     projects: [
       {

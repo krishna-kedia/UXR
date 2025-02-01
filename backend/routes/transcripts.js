@@ -110,10 +110,12 @@ router.post('/upload', auth, upload.single('transcript'), async (req, res) => {
 
     const processFileData = await processFileResponse.json();
 
-    console.log('Processed File Data:', processFileData);
+    console.log('Processed File Data:', processFileData.questions);
 
   // Update the Transcript document to reference the new TranscriptText
   savedTranscript.text = processFileData.transcript;
+  savedTranscript.questions = processFileData.questions;
+
   await savedTranscript.save();
 
 //   // Delay response for 15 seconds

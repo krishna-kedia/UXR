@@ -1,25 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import NewProjectDialogueBox from '../../components/NewProjectDialogueBox/NewProjectDialogueBox';
-import DisplayAllProjects from '../../components/DisplayAllProjects/DisplayAllProjects';
+import { useNavigate } from 'react-router-dom';
 import ProjectList from '../../components/ProjectList/ProjectList';
+import NewProjectDialogueBox from '../../components/NewProjectDialogueBox/NewProjectDialogueBox';
+import Alert from '../../components/Alert/Alert';
+import Loader from '../../components/Loader/Loader';
 import './ProjectPage.css';
-import { Navigate, useNavigate } from 'react-router-dom';
 
 function ProjectPage() {
     const navigate = useNavigate();
     const [showDialogue, setShowDialogue] = useState(false);
-    const [error, setError] = useState(null);
-    const [success, setSuccess] = useState(null);
     const [projects, setProjects] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [alert, setAlert] = useState({ show: false, type: '', message: '' });
 
-    const showMessage = (message, isError = false) => {
-        if (isError) {
-            setError(message);
-            setTimeout(() => setError(null), 5000);
-        } else {
-            setSuccess(message);
-            setTimeout(() => setSuccess(null), 5000);
-        }
+    const showMessage = (message, type) => {
+        setAlert({ show: true, type, message });
     };
 
     const fetchProjects = async () => {
@@ -36,9 +31,10 @@ function ProjectPage() {
 
             const data = await response.json();
             setProjects(data);
-            console.log(data)
         } catch (error) {
-            showMessage(error.message, true);
+            showMessage(error.message, 'error');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -56,58 +52,60 @@ function ProjectPage() {
             });
 
             const data = await response.json();
-            console.log(data)
 
             if (!response.ok) {
                 throw new Error(data.error || 'Failed to create project');
             }
 
             navigate(`/project/${data._id}`);
-
-            showMessage('Project created successfully!');
+            showMessage('Project created successfully!', 'success');
             setShowDialogue(false);
-            fetchProjects(); // Refresh the projects list
+            fetchProjects();
             
         } catch (error) {
-            showMessage(error.message, true);
+            showMessage(error.message, 'error');
         }
     };
 
-    // Fetch projects when component mounts
     useEffect(() => {
         fetchProjects();
     }, []);
 
     return (
         <div className="project-container">
-            <div className="project-header">
-                <h1>Welcome {JSON.parse(localStorage.getItem('user')).firstName}, here are your active projects</h1>
-                <button 
-                    className="new-project-btn"
-                    onClick={() => setShowDialogue(true)}
-                >
-                    New Project
-                </button>
-            </div>
-
-            {error && (
-                <div className="message error-message">
-                    {error}
+            {isLoading ? (
+                <div className="loader-container">
+                    <Loader />
                 </div>
-            )}
-            {success && (
-                <div className="message success-message">
-                    {success}
-                </div>
-            )}
+            ) : (
+                <>
+                    <div className="project-header">
+                        <h1>Welcome {JSON.parse(localStorage.getItem('user')).firstName}, here are your active projects</h1>
+                        <button 
+                            className="new-project-btn"
+                            onClick={() => setShowDialogue(true)}
+                        >
+                            New Project
+                        </button>
+                    </div>
 
-            <ProjectList projects={projects} />
+                    <ProjectList projects={projects} />
 
-            {showDialogue && (
-                <NewProjectDialogueBox
-                    onClose={() => setShowDialogue(false)}
-                    onAdd={handleAddProject}
-                />
+                    {showDialogue && (
+                        <NewProjectDialogueBox
+                            onClose={() => setShowDialogue(false)}
+                            onAdd={handleAddProject}
+                        />
+                    )}
+
+                    {alert.show && (
+                        <Alert 
+                            type={alert.type}
+                            message={alert.message}
+                            onClose={() => setAlert({ show: false, type: '', message: '' })}
+                        />
+                    )}
+                </>
             )}
         </div>
     );
