@@ -61,7 +61,7 @@ router.post('/upload', auth, upload.single('transcript'), async (req, res) => {
       // Upload to S3
       const { s3Key, s3Url } = await uploadToS3(req.file, req.user._id, projectId);
 
-      // Create transcript document
+      // Create transcript document with metadata
       const transcript = new Transcript({
           transcriptName: req.body.transcriptName || req.file.originalname,
           projectId: projectId,
@@ -71,7 +71,13 @@ router.post('/upload', auth, upload.single('transcript'), async (req, res) => {
           fileName: req.file.originalname,
           s3Url: s3Url,
           s3Key: s3Key,
-          origin: "user_uploaded"
+          origin: "user_uploaded",
+          metadata: {
+              no_of_people: req.body.no_of_people,
+              interviewer_name: req.body.interviewer_name,
+              interviewee_names: req.body.interviewee_names,
+              language: req.body.language
+          }
       });
 
       const savedTranscript = await transcript.save();
@@ -82,35 +88,42 @@ router.post('/upload', auth, upload.single('transcript'), async (req, res) => {
           { $push: { transcripts: transcript._id } }
       );
 
-      const processFileResponse = await fetch('http://localhost:8000/process-file/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            url: transcript.s3Url, // Replace with actual S3 URL
-            transcribe_method: 'aws', // or 'aws' based on your requirement
-            transcribe_lang: 'en-US' // or any other language code
-        })
-    });
+      const processData = JSON.stringify({
+        url: transcript.s3Url, // Replace with actual S3 URL
+        transcribe_method: 'aws', // or 'aws' based on your requirement
+        transcribe_lang: 'en-US' // or any other language code
+    })
 
-    if (!processFileResponse.ok) {
-        throw new Error('Failed to process file');
-    }
+    console.log(processData)
 
-    const processFileData = await processFileResponse.json();
+  //     const processFileResponse = await fetch('http://localhost:8000/process-file/', {
+  //       method: 'POST',
+  //       headers: {
+  //           'Content-Type': 'application/json'
+  //       },
+  //       body: processData
+  //   });
 
-    console.log('Processed File Data:', processFileData);
+  //   if (!processFileResponse.ok) {
+  //       throw new Error('Failed to process file');
+  //   }
 
-    const transcriptText = new TranscriptText({
-      text: processFileData.transcript
-  });
+  //   const processFileData = await processFileResponse.json();
 
-  const savedTranscriptText = await transcriptText.save();
+  //   console.log('Processed File Data:', processFileData);
 
-  // Update the Transcript document to reference the new TranscriptText
-  savedTranscript.text = savedTranscriptText._id;
-  await savedTranscript.save();
+  //   const transcriptText = new TranscriptText({
+  //     text: processFileData.transcript
+  // });
+
+  // const savedTranscriptText = await transcriptText.save();
+
+  // // Update the Transcript document to reference the new TranscriptText
+  // savedTranscript.text = savedTranscriptText._id;
+  // await savedTranscript.save();
+
+  // Delay response for 15 seconds
+  await new Promise(resolve => setTimeout(resolve, 15000));
 
       res.status(201).json({
           message: 'Transcript uploaded successfully',
@@ -122,7 +135,7 @@ router.post('/upload', auth, upload.single('transcript'), async (req, res) => {
               fileName: transcript.fileName,
               hasText: !!transcript.text,
               createdAt: transcript.createdAt,
-              text: savedTranscript.text
+              // text: savedTranscript.text
           }
       });
 

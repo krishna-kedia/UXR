@@ -7,7 +7,6 @@
 .project-detail-header {
     display: flex;
     flex-direction: column;
-    gap: 24px;
     margin-bottom: 24px;
 }
 
@@ -17,8 +16,7 @@
 
 .project-info {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    justify-content: row;
 }
 
 .project-info h1 {
@@ -38,16 +36,14 @@
 }
 
 .upload-btn {
-    background-color: #1a1a1a;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 100px;
-    border: none;
-    cursor: pointer;
-    font-family: 'Outfit', sans-serif;
-    font-size: 14px;
-    font-weight: 400;
     transition: background-color 0.2s ease;
+    background-color: #1a1a1a !important;
+    color: white !important;
+    border-radius: 100px !important;
+    text-transform: none !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
 }
 
 .upload-btn:disabled {
@@ -56,9 +52,11 @@
     background-color: #cccccc;
 }
 
-.transcript_container{
-    display: flex;
-    
+.transcript_container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 48px;
+    padding: 0 0 0 0;
 }
 
 .table-header {
@@ -80,22 +78,24 @@
 }
 
 .message {
-    padding: 12px;
-    margin: 10px 0;
+    margin: 16px 0;
+    padding: 12px 16px;
     border-radius: 4px;
-    text-align: center;
-}
-
-.error-message {
-    background-color: #ffebee;
-    color: #c62828;
-    border: 1px solid #ffcdd2;
+    font-family: 'Outfit', sans-serif;
+    display: flex;
+    align-items: center;
 }
 
 .success-message {
     background-color: #e8f5e9;
     color: #2e7d32;
     border: 1px solid #c8e6c9;
+}
+
+.error-message {
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
 }
 
 .no-transcripts {

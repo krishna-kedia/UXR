@@ -17,7 +17,7 @@ router.post('/create', auth, async (req, res) => {
                 "x-meeting-baas-api-key": process.env.MEETING_BAAS_API_KEY,
             },
             body: JSON.stringify({
-                meeting_url: req.body.meeting_url,
+                meeting_url: req.body.meetingLink,
                 bot_name: "AI Notetaker",
                 reserved: false,
                 recording_mode: "speaker_view",
@@ -32,39 +32,37 @@ router.post('/create', auth, async (req, res) => {
             }),
         });
 
-        if (!response.ok) {
-            throw new Error('Failed to create bot');
-        }
+        // if (!response.ok) {
+        //     throw new Error('Failed to create bot');
+        // }
+        console.log(response, "response")
 
         const data = await response.json();
         const botSession = await BotSession.create({
-            bot_id: data.bot_id,
-            meeting_url: req.body.meeting_url,
-            meeting_name: req.body.meeting_name,
-            user_id: req.user._id,
-            status: 'created'
+            meeting_url: req.body.meetingLink,
+            meeting_name: req.body.meetingName,
+            botId: data.bot_id
         });
 
         const savedBotSession = await botSession.save()
-        console.log("saved bot session", savedBotSession)
         // Create new transcript
         const transcript = await Transcript.create({
-            transcriptName: req.body.meeting_name,
+            transcriptName: req.body.meetingName,
             bot_session_id: savedBotSession._id,
             origin: 'meeting_recording'
         });
 
         const savedTranscript = await transcript.save()
-        console.log("saved transcript session", savedTranscript)
-
+        console.log(savedTranscript)
         
         const project = await Project.findById(req.body.project_id)
-        console.log(project)
+
         await Project.findByIdAndUpdate(
-            req.body.project_id,
+            req.body.projectId,
             { $push: { transcripts: savedTranscript._id } },
             { new: true }
         );
+
 
         res.status(201).json({ 
             bot_id: data.bot_id,

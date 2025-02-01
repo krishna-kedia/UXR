@@ -6,7 +6,7 @@ import './IndividualProjectPage.css';
 import CreateQuestionOverlay from '../../components/CreateQuestionOverlay/CreateQuestionOverlay';
 import axios from 'axios';
 import UploadOptionsMenu from '../../components/UploadOptionsMenu/UploadOptionsMenu';
-import InviteBotDialog from '../../components/InviteBotDialog/InviteBotDialog';
+
 import Loader from '../../components/Loader/Loader';
 
 function IndividualProjectPage() {
@@ -22,6 +22,8 @@ function IndividualProjectPage() {
     const { projectId } = useParams();
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [uploadingTranscripts, setUploadingTranscripts] = useState([]);
 
     // Maximum file size (50MB)
     const MAX_FILE_SIZE = 50 * 1024 * 1024;
@@ -78,10 +80,12 @@ function IndividualProjectPage() {
                 _id: transcript._id,
                 name: transcript.transcriptName,
                 uploadedOn: new Date(transcript.createdAt).toLocaleDateString(),
-                content: transcript.content
+                metadata: transcript.metadata,
+                origin: transcript.origin
             }));
 
             setTranscripts(formattedTranscripts);
+            console.log(formattedTranscripts, "formatted transcripts")
 
             // Store project details in local storage
             const projectDetails = {
@@ -90,7 +94,6 @@ function IndividualProjectPage() {
                 createdAt: projectData.createdAt,
                 questionsCreatedDateTime: projectData.questionsCreatedDateTime
             };
-            localStorage.setItem('projectDetails', JSON.stringify(projectDetails));
 
         } catch (error) {
             showMessage(error.message, true);
@@ -109,53 +112,6 @@ function IndividualProjectPage() {
         // }
 
         return true;
-    };
-
-    const handleUploadClick = () => {
-        if (fileInputRef.current) {
-            fileInputRef.current.click();
-        }
-    };
-
-    const handleFileSelect = async (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        try {
-            validateFile(file);
-            setIsUploading(true);
-            setError(null);
-            
-            const formData = new FormData();
-            formData.append('transcript', file);
-            formData.append('transcriptName', file.name);
-            formData.append('projectId', projectId)
-            formData.append('userId', localStorage.getItem('userId'));
-
-            //upload the new transcript
-            const uploadResponse = await fetch('http://localhost:5001/api/transcripts/upload', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                },
-                body: formData
-            });
-
-            const uploadData = await uploadResponse.json();
-
-            if (!uploadResponse.ok) {
-                throw new Error(uploadData.error || 'Upload failed');
-            }
-
-            showMessage('Transcript uploaded and added to project successfully!');
-            fetchProjectDetails();
-
-        } catch (error) {
-            showMessage(error.message, true);
-        } finally {
-            setIsUploading(false);
-            event.target.value = '';
-        }
     };
 
 
@@ -197,28 +153,101 @@ function IndividualProjectPage() {
         fetchProjectDetails();
     }, [projectId]);
 
-    const responsesArray = []; // Initialize an array to store responses
+    // Load any in-progress uploads on mount
+    useEffect(() => {
+        const inProgressUploads = JSON.parse(localStorage.getItem(`uploading_transcripts_${projectId}`)) || [];
+        setUploadingTranscripts(inProgressUploads);
+    }, [projectId]);
 
-const sendPostRequest = async () => {
-    try {
-        const response = await fetch('https://webhook.site/a3eaa4fd-179c-4b8b-b771-de5fdfb6a365', {
+    // Update localStorage when uploadingTranscripts changes
+    useEffect(() => {
+        localStorage.setItem(`uploading_transcripts_${projectId}`, JSON.stringify(uploadingTranscripts));
+    }, [uploadingTranscripts, projectId]);
+
+    const handleSubmit = async (formData) => {
+        setError('');
+
+        try {
+            if (formData.type === 'upload') {
+                await handleFileUpload(formData.data);
+            } else {
+                await handleBotInvite(formData.data);
+            }
+        } catch (error) {
+            setError(error.message);
+            // Remove failed upload from uploading state
+            setUploadingTranscripts(prev => 
+                prev.filter(t => t.tempId !== formData.tempId)
+            );
+        }
+    };
+
+    const handleFileUpload = async (data) => {
+        // Create temporary transcript with metadata
+        const tempTranscript = {
+            tempId: Date.now().toString(),
+            transcriptName: data.transcriptName,
+            fileName: data.file.name,
+            isUploading: true,
+            metadata: data.metadata
+        };
+
+        setUploadingTranscripts(prev => [...prev, tempTranscript]);
+
+        const formData = new FormData();
+        formData.append('transcript', data.file);
+        formData.append('transcriptName', data.transcriptName);
+        formData.append('no_of_people', data.metadata.no_of_people);
+        formData.append('interviewer_name', data.metadata.interviewer_name);
+        formData.append('interviewee_names', data.metadata.interviewee_names);
+        formData.append('language', data.metadata.language);
+        formData.append('projectId', projectId);
+        formData.append('userId', localStorage.getItem('userId'));
+
+        const response = await fetch('http://localhost:5001/api/transcripts/upload', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
             },
-            body: JSON.stringify({ message: 'Hello, Webhook!' }) // Example payload
+            body: formData
         });
 
-        const data = await response.json();
-        responsesArray.push(data); // Push the response into the array
-        console.log('Response received:', data); // Log the response for debugging
+        if (!response.ok) {
+            throw new Error('Upload failed');
+        }
 
-    } catch (error) {
-        console.error('Error sending POST request:', error);
-    }
-};
+        // Remove temp transcript on success
+        setUploadingTranscripts(prev => 
+            prev.filter(t => t.tempId !== tempTranscript.tempId)
+        );
+        
+        setSuccess('File uploaded successfully!');
+        setDialogOpen(false);
+        fetchProjectDetails(); // Refresh the list
+    };
 
-const uploadData = JSON.parse(sessionStorage.getItem('uploadData'));
+    const handleBotInvite = async (data) => {
+        const response = await fetch('http://localhost:5001/api/bot/create', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                meetingLink: data.meetingLink,
+                meetingName: data.meetingName,
+                projectId: projectId
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to invite bot');
+        }
+
+        setSuccess('Bot invited successfully!');
+        setDialogOpen(false);
+        fetchProjectDetails(); // Refresh the list
+    };
 
     return (
         <div className="project-detail-container">
@@ -228,33 +257,22 @@ const uploadData = JSON.parse(sessionStorage.getItem('uploadData'));
                 </div>
             ) : (
                 <div className='project-chat-container'>
-                This is where chat will come
+                
                 </div>
             )}
             <div className="project-detail-header">
-                <div className="back-button">
-                    <button 
-                        className="back-btn" 
-                        onClick={() => navigate('/projects')}
-                    >
-                        ← Back to Projects
-                    </button>
-                </div>
+                <button className="back-btn" onClick={() => navigate('/projects')}>
+                    ← Back to Projects
+                </button>
                 <div className="project-info">
                     <h1>{projectName}</h1>
-                    <UploadOptionsMenu 
-                        onUploadClick={handleUploadClick}
-                        onBotInvite={() => setShowBotDialog(true)}
-                        isUploading={isUploading}
-                        projectId={projectId}
-                    />
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileSelect}
-                        style={{ display: 'none' }}
-                        accept=".mp3,.mp4,.wav,.pdf,.docx,.txt"
-                    />
+                    <button 
+                        className="upload-btn"
+                        onClick={() => setDialogOpen(true)}
+                        disabled={isLoading}
+                    >
+                        Add new transcript
+                    </button>
                 </div>
             </div>
 
@@ -271,36 +289,28 @@ const uploadData = JSON.parse(sessionStorage.getItem('uploadData'));
 
 
                <div className="transcript_container">
-        
-                        {transcripts.map((transcript) => (
-                            <TranscriptDetails
-                                key={transcript._id}
-                                transcript={transcript}
-                                onDelete={fetchProjectDetails}
-                            />
-                        ))}
-                        {uploadData && uploadData.processing && (
-    <TranscriptDetails
-        transcript={{
-            name: uploadData.transcriptName,
-            numberOfPeople: '',
-            duration: '',
-            origin: '',
-            processing: true
-        }}
-    />
-)}
-                    
-                </div>
+                {/* Show uploading transcripts first */}
+                {uploadingTranscripts.map(transcript => (
+                    <TranscriptDetails
+                        key={transcript.tempId}
+                        transcript={{
+                            ...transcript,
+                            isUploading: true
+                        }}
+                    />
+                ))}
+                {/* Show regular transcripts */}
+                {transcripts.map((transcript) => (
+                    <TranscriptDetails
+                        key={transcript._id}
+                        transcript={transcript}
+                        onDelete={fetchProjectDetails}
+                    />
+                ))}
+            </div>
 
 
-            <button 
-                className="generate-questions-btn" 
-                onClick={() => setShowOverlay(true)}
-                title="this is a sample tooltip"
-            >
-                Generate Questions
-            </button>
+           
 
             {showOverlay && (
                 <CreateQuestionOverlay 
@@ -324,13 +334,20 @@ const uploadData = JSON.parse(sessionStorage.getItem('uploadData'));
                 </button>
             )}
 
-            {showBotDialog && (
+            {/* {showBotDialog && (
                 <InviteBotDialog
                     open={showBotDialog}
                     onClose={() => setShowBotDialog(false)}
                     projectId={projectId}
                 />
-            )}
+            )} */}
+
+            <UploadOptionsMenu
+                open={dialogOpen}
+                onClose={() => setDialogOpen(false)}
+                onSubmit={handleSubmit}
+                error={error}
+            />
         </div>
     );
 }

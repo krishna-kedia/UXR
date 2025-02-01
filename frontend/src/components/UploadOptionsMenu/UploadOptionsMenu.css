@@ -34,4 +34,64 @@
 
 .MuiMenuItem-root:hover {
     background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+.upload-dialog {
+    .MuiDialog-paper {
+        max-width: 600px;
+        width: 100%;
+    }
+}
+
+.option-tabs {
+    display: flex;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.option-tab {
+    flex: 1;
+    padding: 16px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 16px;
+    font-family: 'Outfit', sans-serif;
+    color: #666;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.option-tab.active {
+    color: #1a1a1a;
+    font-weight: 500;
+}
+
+.option-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #1a1a1a;
+}
+
+.form-container {
+    padding: 24px 0;
+    transition: opacity 0.2s ease;
+}
+
+.file-input {
+    margin-top: 16px;
+    width: 100%;
+}
+
+/* Override Material-UI styles */
+.MuiDialogContent-root {
+    padding: 0 24px !important;
+}
+
+.MuiDialogActions-root {
+    padding: 16px 24px !important;
+    border-top: 1px solid #e0e0e0;
 } 

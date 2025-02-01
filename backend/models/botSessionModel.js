@@ -1,16 +1,11 @@
 const mongoose = require('mongoose');
 
 const botSessionSchema = new mongoose.Schema({
-    bot_id: {
-        type: String,
-        required: true,
-        index: true
-    },
     meeting_url: {
         type: String,
         required: true
     },
-    meeting_url: {
+    botId: {
         type: String,
         required: true
     },
@@ -18,17 +13,17 @@ const botSessionSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    transcript: {
-        type: Array,
-      default: []
+    webhook_url: {
+        type: String,
+        required: true
     },
     transcript: {
         type: Array,
-      default: []
+        default: []
     },
     speakers: {
         type: Array,
-      default: []
+        default: []
     },
     awsMeetingId: {
         type: String,
@@ -36,7 +31,9 @@ const botSessionSchema = new mongoose.Schema({
     },
     status: {
         code: {
-            type: String
+            type: String,
+            enum: ['joining_call', 'in_waiting_room', 'in_call_not_recording', 'in_call_recording', 'call_ended'],
+            default: 'joining_call'
         },
         created_at: {
             type: Date
@@ -44,10 +41,12 @@ const botSessionSchema = new mongoose.Schema({
     },
     recording_url: String,
     transcript_url: String,
-    logs: {
-        type: Array,
-      default: []
-    }
+    logs: [{
+        status: {
+            code: String,
+            created_at: Date
+        }
+    }]
 }, {
     timestamps: true
 });

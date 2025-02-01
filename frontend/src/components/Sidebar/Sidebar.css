@@ -1,6 +1,6 @@
 .sidebar {
     height: 100vh;
-    background-color: #1a1a1a;
+    background-color: #000000;
     color: white;
     transition: all 0.3s ease;
     display: flex;
@@ -29,11 +29,12 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    cursor: pointer;
 }
 
 .logo-icon {
-    width: 32px;
-    height: 32px;
+    width: 24px;
+    height: 24px;
 }
 
 .logo-text {

@@ -14,175 +14,203 @@ import {
     Snackbar,
     Alert
 } from '@mui/material';
-import InviteBotDialog from '../InviteBotDialog/InviteBotDialog';
 import './UploadOptionsMenu.css';
 
-function UploadOptionsMenu({ onUploadClick, onBotInvite, isUploading }) {
+function UploadOptionsMenu({ open, onClose, onSubmit, error }) {
     const { projectId } = useParams(); // Destructure projectId from useParams
-    const [dialogOpen, setDialogOpen] = useState(false);
-    const [option, setOption] = useState('');
+    // Form states
+    const [selectedOption, setSelectedOption] = useState('upload');
     const [transcriptName, setTranscriptName] = useState('');
     const [interviewerName, setInterviewerName] = useState('');
     const [intervieweeName, setIntervieweeName] = useState('');
     const [language, setLanguage] = useState('');
     const [file, setFile] = useState(null);
-    const [error, setError] = useState('');
+    const [meetingLink, setMeetingLink] = useState('');
+    const [meetingName, setMeetingName] = useState('');
+    const [formError, setFormError] = useState('');
+    const [noOfPeople, setNoOfPeople] = useState('');
 
-    const handleOpenDialog = () => {
-        setDialogOpen(true);
+    const validateLink = (link) => {
+        const validDomains = ['zoom.us', 'meet.google.com'];
+        try {
+            const url = new URL(link);
+            return validDomains.some(domain => url.hostname.includes(domain));
+        } catch {
+            return false;
+        }
     };
 
-    const handleCloseDialog = () => {
-        setDialogOpen(false);
+    const handleOptionChange = (option) => {
+        setSelectedOption(option);
         resetForm();
     };
 
     const resetForm = () => {
-        setOption('');
         setTranscriptName('');
         setInterviewerName('');
         setIntervieweeName('');
         setLanguage('');
         setFile(null);
-        setError('');
+        setMeetingLink('');
+        setMeetingName('');
+        setFormError('');
+        setNoOfPeople('');
     };
 
-    const handleFileChange = (event) => {
-        setFile(event.target.files[0]);
-    };
-
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        if (!transcriptName || !file) {
-            setError('Transcript Name and File are required.');
-            return;
-        }
-
-        // Prepare form data
-        const formData = new FormData();
-        formData.append('transcript', file);
-        formData.append('transcriptName', transcriptName);
-        formData.append('interviewerName', interviewerName);
-        formData.append('intervieweeName', intervieweeName);
-        formData.append('language', language);
-        formData.append('projectId', projectId)
-        formData.append('userId', localStorage.getItem('userId'));
-
-        sessionStorage.setItem('uploadData', JSON.stringify({
-            transcriptName,
-            fileName: file.name,
-            language: language,
-            processing: true
-        }));
-
-        setDialogOpen(false); // Close the overlay
-
-        try {
-            const response = await fetch('http://localhost:5001/api/transcripts/upload', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                },
-                body: formData
-            });
-
-            if (!response.ok) {
-                throw new Error('Upload failed');
+    const handleSubmit = () => {
+        if (selectedOption === 'upload') {
+            if (!transcriptName || !file) {
+                setFormError('Please fill in all required fields');
+                return;
             }
-
-            const data = await response.json();
-            //setSuccess('Upload successful!');
-            sessionStorage.removeItem('uploadData'); // Remove session storage
-            //onUploadComplete(data); // Notify parent component of successful upload
-            window.location.reload(); // Reload the page
-        } catch (error) {
-            setError(error.message);
+            onSubmit({
+                type: 'upload',
+                data: {
+                    transcriptName,
+                    file,
+                    metadata: {
+                        no_of_people: noOfPeople,
+                        interviewer_name: interviewerName,
+                        interviewee_names: intervieweeName,
+                        language: language
+                    }
+                }
+            });
+            onClose();
+        } else {
+            if (!meetingLink || !meetingName) {
+                setFormError('Please fill in all required fields');
+                return;
+            }
+            if (!validateLink(meetingLink)) {
+                setFormError('Please enter a valid Zoom or Google Meet link');
+                return;
+            }
+            onSubmit({
+                type: 'bot',
+                data: {
+                    meetingLink,
+                    meetingName
+                }
+            });
         }
     };
 
     return (
-        <div>
-            <Button
-                onClick={handleOpenDialog}
-                disabled={isUploading}
-                variant="contained"
-                className="upload-btn"
-            >
-                {isUploading ? 'Uploading...' : 'Add new transcript'}
-            </Button>
-            <Dialog open={dialogOpen} onClose={handleCloseDialog}>
-                <DialogTitle>Select an Option</DialogTitle>
-                <DialogContent>
-                    {!option && (
-                        <div>
-                            <MenuItem onClick={() => setOption('upload')}>Upload files</MenuItem>
-                            <MenuItem onClick={() => setOption('bot')}>Invite bot to meeting</MenuItem>
-                        </div>
-                    )}
-                    {option === 'upload' && (
-                        <form onSubmit={handleSubmit} style={{ padding: '20px' }}>
-                            <TextField
-                                label="Transcript Name"
-                                value={transcriptName}
-                                onChange={(e) => setTranscriptName(e.target.value)}
+        <Dialog 
+            open={open} 
+            onClose={onClose}
+            maxWidth="md"
+            fullWidth
+            className="upload-dialog"
+        >
+            <div className="option-tabs">
+                <button 
+                    className={`option-tab ${selectedOption === 'upload' ? 'active' : ''}`}
+                    onClick={() => handleOptionChange('upload')}
+                >
+                    Upload audio/video/text
+                </button>
+                <button 
+                    className={`option-tab ${selectedOption === 'bot' ? 'active' : ''}`}
+                    onClick={() => handleOptionChange('bot')}
+                >
+                    Invite bot to meeting
+                </button>
+            </div>
+
+            <DialogContent>
+                {selectedOption === 'upload' ? (
+                    <div className="form-container">
+                        <TextField
+                            label="Transcript Name"
+                            value={transcriptName}
+                            onChange={(e) => setTranscriptName(e.target.value)}
+                            required
+                            fullWidth
+                            margin="normal"
+                        />
+                        <TextField
+                            label="Number of People"
+                            type="number"
+                            value={noOfPeople}
+                            onChange={(e) => setNoOfPeople(e.target.value)}
+                            fullWidth
+                            margin="normal"
+                        />
+                        <TextField
+                            label="Interviewer Name"
+                            value={interviewerName}
+                            onChange={(e) => setInterviewerName(e.target.value)}
+                            fullWidth
+                            margin="normal"
+                        />
+                        <TextField
+                            label="Interviewee Name(s)"
+                            value={intervieweeName}
+                            onChange={(e) => setIntervieweeName(e.target.value)}
+                            fullWidth
+                            margin="normal"
+                        />
+                        <FormControl fullWidth margin="normal">
+                            <InputLabel>Language</InputLabel>
+                            <Select
+                                value={language}
+                                onChange={(e) => setLanguage(e.target.value)}
                                 required
-                                fullWidth
-                                helperText="It's suggested that you name this file properly, it'll help you with analysis later."
-                            />
-                            <TextField
-                                label="Name of Interviewer"
-                                value={interviewerName}
-                                onChange={(e) => setInterviewerName(e.target.value)}
-                                fullWidth
-                            />
-                            <TextField
-                                label="Name of Interviewee"
-                                value={intervieweeName}
-                                onChange={(e) => setIntervieweeName(e.target.value)}
-                                fullWidth
-                            />
-                            <FormControl fullWidth>
-                                <InputLabel>Language</InputLabel>
-                                <Select
-                                    value={language}
-                                    onChange={(e) => setLanguage(e.target.value)}
-                                    required
-                                >
-                                    <MenuItem value="Hindi">Hindi</MenuItem>
-                                    <MenuItem value="English">English</MenuItem>
-                                    <MenuItem value="Hinglish">Hinglish</MenuItem>
-                                    <MenuItem value="Other">Other</MenuItem>
-                                </Select>
-                            </FormControl>
-                            <input
-                                type="file"
-                                onChange={handleFileChange}
-                                accept=".pdf,.doc,.docx,.mp3,.mp4,.wav,.txt"
-                                required
-                            />
-                            <Button type="submit" variant="contained" color="primary" style={{ marginTop: '10px' }}>
-                                Upload
-                            </Button>
-                        </form>
-                    )}
-                    {option === 'bot' && (
-                        <InviteBotDialog open={true} onClose={handleCloseDialog} projectId={projectId} />
-                    )}
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseDialog} color="primary">
-                        Close
-                    </Button>
-                </DialogActions>
-            </Dialog>
-            {error && (
-                <Snackbar open={Boolean(error)} autoHideDuration={6000} onClose={() => setError('')}>
-                    <Alert onClose={() => setError('')} severity="error">
-                        {error}
+                            >
+                                <MenuItem value="Hindi">Hindi</MenuItem>
+                                <MenuItem value="English">English</MenuItem>
+                                <MenuItem value="Hinglish">Hinglish</MenuItem>
+                                <MenuItem value="Other">Other</MenuItem>
+                            </Select>
+                        </FormControl>
+                        <input
+                            type="file"
+                            onChange={(e) => setFile(e.target.files[0])}
+                            accept=".pdf,.doc,.docx,.mp3,.mp4,.wav,.txt"
+                            className="file-input"
+                        />
+                    </div>
+                ) : (
+                    <div className="form-container">
+                        <TextField
+                            label="Meeting Link"
+                            value={meetingLink}
+                            onChange={(e) => setMeetingLink(e.target.value)}
+                            required
+                            fullWidth
+                            margin="normal"
+                            placeholder="e.g., https://zoom.us/j/123456789"
+                        />
+                        <TextField
+                            label="Meeting Name"
+                            value={meetingName}
+                            onChange={(e) => setMeetingName(e.target.value)}
+                            required
+                            fullWidth
+                            margin="normal"
+                            placeholder="e.g., User Interview with John"
+                        />
+                    </div>
+                )}
+            </DialogContent>
+
+            <DialogActions>
+                <Button onClick={onClose}>Cancel</Button>
+                <Button onClick={handleSubmit} variant="contained" color="primary">
+                    {selectedOption === 'upload' ? 'Upload' : 'Invite Bot'}
+                </Button>
+            </DialogActions>
+
+            {(formError || error) && (
+                <Snackbar open={!!(formError || error)} autoHideDuration={6000} onClose={() => setFormError('')}>
+                    <Alert severity="error" onClose={() => setFormError('')}>
+                        {formError || error}
                     </Alert>
                 </Snackbar>
             )}
-        </div>
+        </Dialog>
     );
 }
 

@@ -9,6 +9,7 @@ import LocalOfferIcon from '@mui/icons-material/LocalOffer'; // Tagging
 import AssessmentIcon from '@mui/icons-material/Assessment'; // Analysis
 import BarChartIcon from '@mui/icons-material/BarChart'; // Reporting
 import './Sidebar.css';
+import logo from './images.png'
 
 function Sidebar() {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -51,20 +52,15 @@ function Sidebar() {
             onMouseLeave={handleMouseLeave}
         >
             <div className="sidebar-top">
-                <div className="logo-container">
-                    {/* Placeholder logo */}
-                    <img src="/logo.png" alt="Logo" className="logo-icon" />
+                <div className="logo-container" onClick={() => navigate('/projects')}>
+                    <img src={logo} alt="Logo" className="logo-icon" />
                     {isExpanded && (
                         <Typography variant="h6" className="logo-text">
                             Papyrus
                         </Typography>
                     )}
                 </div>
-                {!isExpanded && (
-                    <IconButton onClick={handleBack} className="back-button">
-                        <KeyboardBackspaceIcon />
-                    </IconButton>
-                )}
+                
             </div>
 
             <nav className="sidebar-nav">
@@ -74,7 +70,7 @@ function Sidebar() {
                         className="nav-item"
                         onClick={() => navigate(item.path)}
                     >
-                        {item.icon}
+                        {React.cloneElement(item.icon, { sx: { fontWeight: 300 } })}
                         {isExpanded && (
                             <span className="nav-label">{item.label}</span>
                         )}
@@ -87,7 +83,7 @@ function Sidebar() {
                     className="nav-item"
                     onClick={() => navigate(`/project/${projectId}/settings`)}
                 >
-                    <SettingsIcon />
+                    <SettingsIcon sx={{ fontWeight: 300 }} />
                     {isExpanded && (
                         <span className="nav-label">Settings</span>
                     )}
@@ -96,7 +92,7 @@ function Sidebar() {
                     className="nav-item"
                     onClick={() => navigate(`/user/${user.id}/settings`)}
                 >
-                    <PersonIcon />
+                    <PersonIcon sx={{ fontWeight: 300 }} />
                     {isExpanded && (
                         <span className="nav-label">Profile</span>
                     )}

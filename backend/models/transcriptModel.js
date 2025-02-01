@@ -52,6 +52,24 @@ const transcriptSchema = new mongoose.Schema(
     bot_session_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'BotSession'
+    },
+    metadata: {
+      no_of_people: {
+        type: Number,
+        required: false
+      },
+      interviewer_name: {
+        type: String,
+        required: false
+      },
+      interviewee_names: {
+        type: String,
+        required: false
+      },
+      language: {
+        type: String,
+        required: false
+      }
     }
   },
   { timestamps: true }
