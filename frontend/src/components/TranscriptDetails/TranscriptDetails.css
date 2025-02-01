@@ -20,6 +20,7 @@
     height: 100%;
     display: flex;
     flex-direction: column;
+    position: relative;
 }
 
 .transcript-card:hover {
@@ -46,12 +47,14 @@
     display: flex;
     flex-direction: column;
     gap: 24px;
+    position: relative;
 }
 
 .transcript-header {
-    margin-bottom: 8px;
     display: flex;
-    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
 }
 
 .transcript-name {
@@ -161,3 +164,32 @@
     position: relative;
     opacity: 0.8;
 }
+
+.status-badge {
+    position: static;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    color: white;
+    text-transform: capitalize;
+    display: inline-flex;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 10vw;
+}
+
+.status-joining { background-color: #EAB308; }
+.status-waiting { background-color: #3B82F6; }
+.status-not-recording { background-color: #F97316; }
+.status-recording { background-color: #22C55E; }
+.status-ended { background-color: #B91C1C; }
+.status-error { background-color: #991B1B; }
+.status-default { background-color: #6B7280; }
+
+.bg-yellow-500 { background-color: #EAB308; }
+.bg-blue-500 { background-color: #3B82F6; }
+.bg-orange-500 { background-color: #F97316; }
+.bg-green-500 { background-color: #22C55E; }
+.bg-red-500 { background-color: #B91C1C; }
+.bg-red-700 { background-color: #991B1B; }
+.bg-gray-500 { background-color: #6B7280; }

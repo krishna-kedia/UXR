@@ -96,34 +96,28 @@ router.post('/upload', auth, upload.single('transcript'), async (req, res) => {
 
     console.log(processData)
 
-  //     const processFileResponse = await fetch('http://localhost:8000/process-file/', {
-  //       method: 'POST',
-  //       headers: {
-  //           'Content-Type': 'application/json'
-  //       },
-  //       body: processData
-  //   });
+      const processFileResponse = await fetch('http://localhost:8000/process-file/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: processData
+    });
 
-  //   if (!processFileResponse.ok) {
-  //       throw new Error('Failed to process file');
-  //   }
+    if (!processFileResponse.ok) {
+        throw new Error('Failed to process file');
+    }
 
-  //   const processFileData = await processFileResponse.json();
+    const processFileData = await processFileResponse.json();
 
-  //   console.log('Processed File Data:', processFileData);
+    console.log('Processed File Data:', processFileData);
 
-  //   const transcriptText = new TranscriptText({
-  //     text: processFileData.transcript
-  // });
+  // Update the Transcript document to reference the new TranscriptText
+  savedTranscript.text = processFileData.transcript;
+  await savedTranscript.save();
 
-  // const savedTranscriptText = await transcriptText.save();
-
-  // // Update the Transcript document to reference the new TranscriptText
-  // savedTranscript.text = savedTranscriptText._id;
-  // await savedTranscript.save();
-
-  // Delay response for 15 seconds
-  await new Promise(resolve => setTimeout(resolve, 15000));
+//   // Delay response for 15 seconds
+//   await new Promise(resolve => setTimeout(resolve, 15000));
 
       res.status(201).json({
           message: 'Transcript uploaded successfully',
@@ -135,7 +129,7 @@ router.post('/upload', auth, upload.single('transcript'), async (req, res) => {
               fileName: transcript.fileName,
               hasText: !!transcript.text,
               createdAt: transcript.createdAt,
-              // text: savedTranscript.text
+              text: savedTranscript.text
           }
       });
 

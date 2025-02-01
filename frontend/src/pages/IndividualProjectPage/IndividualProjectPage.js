@@ -61,7 +61,7 @@ function IndividualProjectPage() {
             
             const projectData = await response.json();
             setProjectName(projectData.projectName);
-            console.log(projectData, "project data")
+
             // Fetch transcripts for this project
             const transcriptResponse = await fetch(`http://localhost:5001/api/transcripts/project/${projectId}`, {
                 headers: {
@@ -74,26 +74,49 @@ function IndividualProjectPage() {
             }
 
             const transcriptData = await transcriptResponse.json();
-            console.log(transcriptData, "transcript data")
+            
+            // Get bot statuses for meeting recordings
+            const meetingRecordings = transcriptData.filter(t => 
+                t.origin === 'meeting_recording' && t.bot_session_id
+            );
+
+            console.log('Meeting recordings:', meetingRecordings); // Debug log
+
+            const botStatuses = await Promise.all(
+                meetingRecordings.map(async (transcript) => {
+                    try {
+                        const response = await fetch(`http://localhost:5001/api/bot/status/${transcript.bot_session_id}`, {
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            }
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`Failed to fetch bot status for transcript ${transcript._id}`);
+                        }
+                        
+                        const botData = await response.json();
+                        console.log('Bot status for transcript:', transcript._id, botData); // Debug log
+                        return [transcript._id, botData];
+                    } catch (error) {
+                        console.error('Error fetching bot status:', error);
+                        return [transcript._id, null];
+                    }
+                })
+            );
 
             const formattedTranscripts = transcriptData.map(transcript => ({
                 _id: transcript._id,
                 name: transcript.transcriptName,
                 uploadedOn: new Date(transcript.createdAt).toLocaleDateString(),
                 metadata: transcript.metadata,
-                origin: transcript.origin
+                origin: transcript.origin,
+                bot_session_id: transcript.bot_session_id,
+                botStatus: botStatuses.find(([id]) => id === transcript._id)?.[1]
             }));
 
+            console.log('Formatted transcripts:', formattedTranscripts); // Debug log
             setTranscripts(formattedTranscripts);
-            console.log(formattedTranscripts, "formatted transcripts")
-
-            // Store project details in local storage
-            const projectDetails = {
-                projectName: projectData.projectName,
-                numberOfTranscripts: transcriptData.length,
-                createdAt: projectData.createdAt,
-                questionsCreatedDateTime: projectData.questionsCreatedDateTime
-            };
 
         } catch (error) {
             showMessage(error.message, true);
@@ -249,6 +272,46 @@ function IndividualProjectPage() {
         fetchProjectDetails(); // Refresh the list
     };
 
+    // Add this effect for polling bot statuses
+    useEffect(() => {
+        const pollBotStatuses = async () => {
+            const meetingRecordings = transcripts.filter(t => 
+                t.origin === 'meeting_recording' && t.bot_session_id
+            );
+
+            if (meetingRecordings.length === 0) return;
+
+            const botStatuses = await Promise.all(
+                meetingRecordings.map(async (transcript) => {
+                    try {
+                        const response = await fetch(`http://localhost:5001/api/bot/status/${transcript.bot_session_id}`, {
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            }
+                        });
+                        
+                        if (!response.ok) return [transcript._id, null];
+                        
+                        const botData = await response.json();
+                        return [transcript._id, botData];
+                    } catch (error) {
+                        console.error('Error polling bot status:', error);
+                        return [transcript._id, null];
+                    }
+                })
+            );
+
+            // Update transcripts with new bot statuses
+            setTranscripts(prev => prev.map(transcript => ({
+                ...transcript,
+                botStatus: botStatuses.find(([id]) => id === transcript._id)?.[1] || transcript.botStatus
+            })));
+        };
+
+        const pollInterval = setInterval(pollBotStatuses, 5000000);
+        return () => clearInterval(pollInterval);
+    }, [transcripts]);
+
     return (
         <div className="project-detail-container">
             {isLoading ? (
@@ -309,8 +372,14 @@ function IndividualProjectPage() {
                 ))}
             </div>
 
-
-           
+            <div className="generate-questions-container">
+                <button 
+                    className="generate-questions-btn"
+                    onClick={() => setShowOverlay(true)}
+                >
+                    Generate Questions
+                </button>
+            </div>
 
             {showOverlay && (
                 <CreateQuestionOverlay 

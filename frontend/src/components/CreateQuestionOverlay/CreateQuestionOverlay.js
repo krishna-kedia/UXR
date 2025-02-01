@@ -22,6 +22,8 @@ function CreateQuestionOverlay({ onClose, projectId, onSave }) {
                 body: JSON.stringify({ project_id: projectId })
             });
 
+            console.log(response, "response")
+
             if (!response.ok) {
                 throw new Error('Failed to generate questions');
             }
@@ -30,7 +32,8 @@ function CreateQuestionOverlay({ onClose, projectId, onSave }) {
             console.log(data)
             setQuestions(Object.values(data));
         } catch (error) {
-            setError('Uh oh! Something went wrong. Please try again.');
+            // setError('Uh oh! Something went wrong. Please try again.');
+            console.log(error)
         } finally {
             setLoading(false);
         }

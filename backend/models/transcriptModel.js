@@ -18,8 +18,7 @@ const transcriptSchema = new mongoose.Schema(
       type: String,
     },
     text: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'TranscriptText'
+      type: String
     },
     fileName: {
       type: String

@@ -1,6 +1,5 @@
 .project-detail-container {
     padding: 32px;
-    background-color: #f5f5f5;
     min-height: 100vh;
 }
 
@@ -55,8 +54,8 @@
 .transcript_container {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 48px;
-    padding: 0 0 0 0;
+    gap: 24px;
+    padding: 24px;
 }
 
 .table-header {
@@ -93,9 +92,12 @@
 }
 
 .error-message {
-    background-color: #ffebee;
-    color: #c62828;
-    border: 1px solid #ffcdd2;
+    color: #DC2626;
+    background-color: #FEE2E2;
+    border: 1px solid #DC2626;
+    padding: 8px 16px;
+    border-radius: 4px;
+    margin: 8px 0;
 }
 
 .no-transcripts {
@@ -124,4 +126,57 @@
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+}
+
+.generate-questions-container {
+    display: flex;
+    justify-content: center;
+    margin: 24px 0;
+}
+
+.generate-questions-btn {
+    background-color: #0066CC;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 100px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    cursor: pointer;
+}
+
+.transcript-card {
+    background-color: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 16px;
+    position: relative;
+}
+
+/* Uploading state */
+.transcript-card.uploading {
+    position: relative;
+}
+
+.transcript-card.uploading::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 1;
+}
+
+.uploading-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1a1a1a;
 }

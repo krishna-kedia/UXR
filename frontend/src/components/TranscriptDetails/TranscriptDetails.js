@@ -12,15 +12,28 @@ const TranscriptDetails = ({
         processing,
         isUploading,
         transcriptName,
-        metadata
+        metadata,
+        botStatus
     } 
 }) => {
     const getOriginIcon = (origin) => {
-        return origin === 'meeting_recorded' ? (
+        return origin === 'meeting_recording' ? (
             <Videocam className="origin-icon" />
         ) : (
             <Person className="origin-icon" />
         );
+    };
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'joining_call': return 'status-joining';
+            case 'in_waiting_room': return 'status-waiting';
+            case 'in_call_not_recording': return 'status-not-recording';
+            case 'in_call_recording': return 'status-recording';
+            case 'call_ended': return 'status-ended';
+            case 'error': return 'status-error';
+            default: return 'status-default';
+        }
     };
 
     return (
@@ -41,6 +54,11 @@ const TranscriptDetails = ({
                     </h3>
                     {!processing && getOriginIcon(origin)}
                 </div>
+                {origin === 'meeting_recording' && botStatus && botStatus.status && (
+                    <div className={`status-badge ${getStatusColor(botStatus.status.code)}`}>
+                        {botStatus.status.code.replace(/_/g, ' ')}
+                    </div>
+                )}
                 <div className="transcript-metadata">
                     {metadata && (
                         <div className="metadata-grid">

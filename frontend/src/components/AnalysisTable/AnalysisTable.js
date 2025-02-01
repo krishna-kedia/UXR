@@ -17,6 +17,8 @@ function AnalysisTable({
         );
     }
 
+    console.log('Answers:', answers); // Debug log
+
     return (
         <div className="analysis-table-container">
             <table className="analysis-table">
@@ -30,8 +32,7 @@ function AnalysisTable({
                                     {loadingColumns[transcript._id] && (
                                         <div className="column-loading">Analyzing...</div>
                                     )}
-                                    {!answers[transcript._id] || 
-                                     Object.keys(answers[transcript._id]).length === 0 ? (
+                                    {!answers[transcript._id] ? (
                                         <button 
                                             className="analyze-column-btn"
                                             onClick={() => onAnalyzeColumn(transcript, questions)}
@@ -50,19 +51,24 @@ function AnalysisTable({
                         <tr key={rowIndex}>
                             <th className="row-header">{question}</th>
                             {transcripts.map((transcript) => {
-                                const hasData = answers[transcript._id] && 
-                                              Object.keys(answers[transcript._id]).length > 0;
+                                const transcriptAnswers = answers[transcript._id];
+                                // Get answer from the numbered response format
+                                const answer = transcriptAnswers?.answer?.[rowIndex + 1] || 
+                                             transcriptAnswers?.[rowIndex + 1] ||
+                                             '';
                                 
                                 return (
                                     <td key={transcript._id} className="table-cell">
-                                        {hasData ? (
-                                            answers[transcript._id]?.[rowIndex + 1] || ''
+                                        {loadingColumns[transcript._id] ? (
+                                            <div className="loading-cell">Loading...</div>
+                                        ) : transcriptAnswers ? (
+                                            <div className="answer-cell">
+                                                {answer}
+                                            </div>
                                         ) : (
-                                            rowIndex === 0 ? (
-                                                <div className="no-data-message">
-                                                    No data available for this transcript
-                                                </div>
-                                            ) : null
+                                            <div className="no-data-message">
+                                                Click Analyze to get insights
+                                            </div>
                                         )}
                                     </td>
                                 );
