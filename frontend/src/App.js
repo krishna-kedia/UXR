@@ -64,7 +64,7 @@ function App() {
                     <Route path="/questions" element={<QuestionsPage />} />
                     <Route path="/calls" element={<div>Calls Page</div>} />
                     <Route path="/analysis" element={<div>Analysis Page</div>} />
-                    <Route path="/chat/:projectId" element={<ChatPage />} />
+                    <Route path="/chat" element={<ChatPage />} />
                     <Route path="/notes" element={<div>Notes Page</div>} />
                     <Route path="/analysis/:projectId" element={<AnalysisPage />} />
                   </Routes>

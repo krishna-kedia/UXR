@@ -164,6 +164,42 @@ router.post('/webhook/:webhookId', async (req, res) => {
                         }
                     }
                 );
+                
+                // Find associated transcript
+                const transcript = await Transcript.findOne({ bot_session_id: botSession._id });
+                if (!transcript) {
+                    console.error('❌ Associated transcript not found');
+                    break;
+                }
+
+                // Process the recording
+                try {
+                    const s3FilePath = `recordings/${botSession._id}/${Date.now()}.mp4`;
+                    
+                    const processResponse = await fetch('http://localhost:5001/api/bot/process-bot-file', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${process.env.API_KEY}`
+                        },
+                        body: JSON.stringify({
+                            bot_url: eventData.data.mp4,
+                            s3_file_path: s3FilePath,
+                            transcriptId: transcript._id
+                        })
+                    });
+
+                    if (!processResponse.ok) {
+                        throw new Error('Failed to process bot recording');
+                    }
+                    console.log('✅ Recording processed successfully');
+                } catch (error) {
+                    console.error('❌ Error processing recording:', error);
+                    await Transcript.findByIdAndUpdate(transcript._id, {
+                        uploadStatus: 'PROCESSING_FAILED'
+                    });
+                }
+                
                 console.log('✅ Complete event processed');
                 break;
 
@@ -219,6 +255,60 @@ router.get('/status/:botSessionId', auth, async (req, res) => {
         res.json(botSession);
     } catch (error) {
         console.error('Error fetching bot status:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Process bot file
+router.post('/process-bot-file', auth, async (req, res) => {
+    try {
+        const { 
+            bot_url,
+            s3_file_path,
+            transcribe_method = 'aws',
+            transcribe_lang = 'en-US',
+            transcribe_speaker_number = 2
+        } = req.body;
+
+        if (!bot_url || !s3_file_path) {
+            return res.status(400).json({ 
+                error: 'Bot URL and S3 file path are required' 
+            });
+        }
+
+        const response = await fetch('http://localhost:8000/process-bot-file/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                bot_url,
+                s3_file_path,
+                transcribe_method,
+                transcribe_lang,
+                transcribe_speaker_number
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to process bot file');
+        }
+
+        const data = await response.json();
+
+        // Update transcript with processed data
+        if (req.body.transcriptId) {
+            await Transcript.findByIdAndUpdate(req.body.transcriptId, {
+                text: data.transcript,
+                questions: data.questions,
+                uploadStatus: 'READY_TO_USE'
+            });
+        }
+
+        res.json(data);
+    } catch (error) {
+        console.error('Error processing bot file:', error);
         res.status(500).json({ error: error.message });
     }
 });
