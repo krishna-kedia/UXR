@@ -110,11 +110,9 @@
 .generate-questions-btn, .save-questions-btn {
     background-color: #007bff;
     color: white;
-    padding: 10px 20px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    margin-top: 20px;
 }
 
 .generate-questions-btn:hover, .save-questions-btn:hover {

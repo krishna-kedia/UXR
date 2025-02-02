@@ -356,6 +356,7 @@ router.post('/process-transcript/:transcriptId', auth, async (req, res) => {
             transcriptId: transcript._id
         });
     } catch (error) {
+        console.error('Error in process-transcript:', error);
         res.status(500).json({ error: error.message });
     }
 });

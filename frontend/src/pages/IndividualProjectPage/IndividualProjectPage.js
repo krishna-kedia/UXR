@@ -433,43 +433,43 @@ function IndividualProjectPage() {
         fetchProjectDetails();
     };
 
-    useEffect(() => {
-        const pollBotStatuses = async () => {
-            const meetingRecordings = transcripts.filter(t => 
-                t.origin === 'meeting_recording' && t.bot_session_id
-            );
+    // useEffect(() => {
+    //     const pollBotStatuses = async () => {
+    //         const meetingRecordings = transcripts.filter(t => 
+    //             t.origin === 'meeting_recording' && t.bot_session_id
+    //         );
 
-            if (meetingRecordings.length === 0) return;
+    //         if (meetingRecordings.length === 0) return;
 
-            const botStatuses = await Promise.all(
-                meetingRecordings.map(async (transcript) => {
-                    try {
-                        const response = await fetch(`http://localhost:5001/api/bot/status/${transcript.bot_session_id}`, {
-                            headers: {
-                                'Authorization': `Bearer ${localStorage.getItem('token')}`
-                            }
-                        });
+    //         const botStatuses = await Promise.all(
+    //             meetingRecordings.map(async (transcript) => {
+    //                 try {
+    //                     const response = await fetch(`http://localhost:5001/api/bot/status/${transcript.bot_session_id}`, {
+    //                         headers: {
+    //                             'Authorization': `Bearer ${localStorage.getItem('token')}`
+    //                         }
+    //                     });
                         
-                        if (!response.ok) return [transcript._id, null];
+    //                     if (!response.ok) return [transcript._id, null];
                         
-                        const botData = await response.json();
-                        return [transcript._id, botData];
-                    } catch (error) {
-                        console.error('Error polling bot status:', error);
-                        return [transcript._id, null];
-                    }
-                })
-            );
+    //                     const botData = await response.json();
+    //                     return [transcript._id, botData];
+    //                 } catch (error) {
+    //                     console.error('Error polling bot status:', error);
+    //                     return [transcript._id, null];
+    //                 }
+    //             })
+    //         );
 
-            setTranscripts(prev => prev.map(transcript => ({
-                ...transcript,
-                botStatus: botStatuses.find(([id]) => id === transcript._id)?.[1] || transcript.botStatus
-            })));
-        };
+    //         setTranscripts(prev => prev.map(transcript => ({
+    //             ...transcript,
+    //             botStatus: botStatuses.find(([id]) => id === transcript._id)?.[1] || transcript.botStatus
+    //         })));
+    //     };
 
-        const pollInterval = setInterval(pollBotStatuses, 5000000);
-        return () => clearInterval(pollInterval);
-    }, [transcripts]);
+    //     const pollInterval = setInterval(pollBotStatuses, 5000000);
+    //     return () => clearInterval(pollInterval);
+    // }, [transcripts]);
 
     return (
         <div className="project-detail-container">
@@ -502,6 +502,12 @@ function IndividualProjectPage() {
                     >
                         Add new transcript
                     </button>
+                <button 
+                    className="generate-questions-btn"
+                    onClick={() => setShowOverlay(true)}
+                >
+                    Generate Questions
+                </button>
                 </div>
             </div>
 
@@ -549,15 +555,6 @@ function IndividualProjectPage() {
                         onDelete={fetchProjectDetails}
                     />
                 ))}
-            </div>
-
-            <div className="generate-questions-container">
-                <button 
-                    className="generate-questions-btn"
-                    onClick={() => setShowOverlay(true)}
-                >
-                    Generate Questions
-                </button>
             </div>
 
             {showOverlay && (
