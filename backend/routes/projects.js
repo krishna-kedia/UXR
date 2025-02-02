@@ -21,10 +21,17 @@ router.get('/', auth, async (req, res) => {
 // Get project by ID
 router.get('/:projectId', auth, async (req, res) => {
     try {
-        const project = await Project.findById(req.params.projectId);
+        const project = await Project.findById(req.params.projectId)
+            .select('-pastQuestions')
+            .populate({
+                path: 'transcripts',
+                select: '-questions -ActiveQuestionsAnswers -pastQuestionsArray -text'
+            });
+
         if (!project) {
             return res.status(404).json({ error: 'Project not found' });
         }
+
         res.json(project);
     } catch (error) {
         console.error('Error fetching project:', error);

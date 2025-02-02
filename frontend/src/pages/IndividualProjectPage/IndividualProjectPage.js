@@ -6,44 +6,26 @@ import './IndividualProjectPage.css';
 import CreateQuestionOverlay from '../../components/CreateQuestionOverlay/CreateQuestionOverlay';
 import axios from 'axios';
 import UploadOptionsMenu from '../../components/UploadOptionsMenu/UploadOptionsMenu';
+import Alert from '../../components/Alert/Alert';
 
 import Loader from '../../components/Loader/Loader';
 
 function IndividualProjectPage() {
-    const fileInputRef = useRef(null);
-    const [isUploading, setIsUploading] = useState(false);
-    const [error, setError] = useState(null);
-    const [success, setSuccess] = useState(null);
     const [transcripts, setTranscripts] = useState([]);
     const [projectName, setProjectName] = useState('');
     const [questions, setQuestions] = useState([]);
     const [showOverlay, setShowOverlay] = useState(false);
-    const [showBotDialog, setShowBotDialog] = useState(false);
     const { projectId } = useParams();
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [uploadingTranscripts, setUploadingTranscripts] = useState([]);
+    const [uploadProgress, setUploadProgress] = useState({});
+    const [uploadingTranscriptNames, setUploadingTranscriptNames] = useState({});
+    const [alert, setAlert] = useState(null);
 
-    // Maximum file size (50MB)
-    const MAX_FILE_SIZE = 50 * 1024 * 1024;
-    const ALLOWED_TYPES = {
-        'audio/mpeg': 'mp3',
-        'audio/mp4': 'mp4',
-        'audio/wav': 'wav',
-        'application/pdf': 'pdf',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
-        'text/plain': 'txt'
-    };
-
-    const showMessage = (message, isError = false) => {
-        if (isError) {
-            setError(message);
-            setTimeout(() => setError(null), 5000);
-        } else {
-            setSuccess(message);
-            setTimeout(() => setSuccess(null), 5000);
-        }
+    const showAlert = (message, type) => {
+        setAlert({ message, type });
     };
 
     const fetchProjectDetails = async () => {
@@ -62,81 +44,33 @@ function IndividualProjectPage() {
             const projectData = await response.json();
             setProjectName(projectData.projectName);
 
-            // Fetch transcripts for this project
-            const transcriptResponse = await fetch(`http://localhost:5001/api/transcripts/project/${projectId}`, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-
-            if (!transcriptResponse.ok) {
-                throw new Error('Failed to fetch transcripts');
-            }
-
-            const transcriptData = await transcriptResponse.json();
-            
-            // Get bot statuses for meeting recordings
-            const meetingRecordings = transcriptData.filter(t => 
-                t.origin === 'meeting_recording' && t.bot_session_id
-            );
-
-            console.log('Meeting recordings:', meetingRecordings); // Debug log
-
-            const botStatuses = await Promise.all(
-                meetingRecordings.map(async (transcript) => {
-                    try {
-                        const response = await fetch(`http://localhost:5001/api/bot/status/${transcript.bot_session_id}`, {
-                            headers: {
-                                'Authorization': `Bearer ${localStorage.getItem('token')}`
-                            }
-                        });
-                        
-                        if (!response.ok) {
-                            throw new Error(`Failed to fetch bot status for transcript ${transcript._id}`);
-                        }
-                        
-                        const botData = await response.json();
-                        console.log('Bot status for transcript:', transcript._id, botData); // Debug log
-                        return [transcript._id, botData];
-                    } catch (error) {
-                        console.error('Error fetching bot status:', error);
-                        return [transcript._id, null];
-                    }
-                })
-            );
-
-            const formattedTranscripts = transcriptData.map(transcript => ({
+            // Format transcripts from project data
+            const formattedTranscripts = projectData.transcripts.map(transcript => ({
                 _id: transcript._id,
                 name: transcript.transcriptName,
                 uploadedOn: new Date(transcript.createdAt).toLocaleDateString(),
                 metadata: transcript.metadata,
                 origin: transcript.origin,
                 bot_session_id: transcript.bot_session_id,
-                botStatus: botStatuses.find(([id]) => id === transcript._id)?.[1]
+                uploadStatus: transcript.uploadStatus,
+                progress: transcript.progress,
+                createdAt: transcript.createdAt
             }));
 
-            console.log('Formatted transcripts:', formattedTranscripts); // Debug log
+            // Get bot statuses for meeting recordings
+            const meetingRecordings = formattedTranscripts.filter(t => 
+                t.origin === 'meeting_recording' && t.bot_session_id
+            );
+
+            console.log('Meeting recordings:', meetingRecordings); // Debug log
             setTranscripts(formattedTranscripts);
 
         } catch (error) {
-            showMessage(error.message, true);
+            showAlert(error.message, 'error');
         } finally {
             setIsLoading(false);
         }
     };
-
-    const validateFile = (file) => {
-        if (file.size > MAX_FILE_SIZE) {
-            throw new Error('File size exceeds 50MB limit');
-        }
-
-        // if (!ALLOWED_TYPES[file.type]) {
-        //     throw new Error('Invalid file type. Only MP3, MP4, WAV, PDF, DOCX, and TXT files are allowed frontned ');
-        // }
-
-        return true;
-    };
-
 
     const handleQuestionChange = (index, newText) => {
         const updatedQuestions = [...questions];
@@ -162,13 +96,13 @@ function IndividualProjectPage() {
                 throw new Error('Failed to save questions');
             }
 
-            showMessage('Questions saved successfully!');
+            showAlert('Questions saved successfully!', 'success');
             setShowOverlay(false);
             // Refresh project details and navigate
             await fetchProjectDetails();
             navigate(`/project/${projectId}`);
         } catch (error) {
-            showMessage('Failed to save questions', true);
+            showAlert('Failed to save questions', 'error');
         }
     };
 
@@ -188,8 +122,6 @@ function IndividualProjectPage() {
     }, [uploadingTranscripts, projectId]);
 
     const handleSubmit = async (formData) => {
-        setError('');
-
         try {
             if (formData.type === 'upload') {
                 await handleFileUpload(formData.data);
@@ -197,7 +129,7 @@ function IndividualProjectPage() {
                 await handleBotInvite(formData.data);
             }
         } catch (error) {
-            setError(error.message);
+            showAlert(error.message, 'error');
             // Remove failed upload from uploading state
             setUploadingTranscripts(prev => 
                 prev.filter(t => t.tempId !== formData.tempId)
@@ -206,47 +138,276 @@ function IndividualProjectPage() {
     };
 
     const handleFileUpload = async (data) => {
-        // Create temporary transcript with metadata
-        const tempTranscript = {
-            tempId: Date.now().toString(),
-            transcriptName: data.transcriptName,
-            fileName: data.file.name,
-            isUploading: true,
-            metadata: data.metadata
+        let uploadId = null;
+        let transcriptId = null;
+        let s3Key = null;
+        const MAX_RETRIES = 2;
+        const RETRY_DELAY = 1000;
+        const CHUNK_SIZE = 5 * 1024 * 1024;
+            
+        const validateETag = (eTag, partNumber) => {
+            if (!eTag) {
+                console.error(`Invalid ETag for part ${partNumber}: ETag is empty`);
+                return false;
+            }
+            if (typeof eTag !== 'string') {
+                console.error(`Invalid ETag type for part ${partNumber}:`, typeof eTag);
+                return false;
+            }
+            return true;
         };
 
-        setUploadingTranscripts(prev => [...prev, tempTranscript]);
+        const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-        const formData = new FormData();
-        formData.append('transcript', data.file);
-        formData.append('transcriptName', data.transcriptName);
-        formData.append('no_of_people', data.metadata.no_of_people);
-        formData.append('interviewer_name', data.metadata.interviewer_name);
-        formData.append('interviewee_names', data.metadata.interviewee_names);
-        formData.append('language', data.metadata.language);
-        formData.append('projectId', projectId);
-        formData.append('userId', localStorage.getItem('userId'));
+        const uploadPartWithRetry = async (partNumber, chunk, attempt = 1) => {
+            try {
+                console.log(`[Part ${partNumber}] Starting upload attempt ${attempt}/${MAX_RETRIES}`, {
+                    size: chunk.size,
+                    start: chunk.size * (partNumber - 1),
+                    end: chunk.size * partNumber
+                });
+                
+                const urlResponse = await fetch(
+                    `http://localhost:5001/api/transcripts/upload-part-url?uploadId=${uploadId}&partNumber=${partNumber}&s3Key=${s3Key}`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    }
+                );
+                
+                if (!urlResponse.ok) {
+                    const errorText = await urlResponse.text();
+                    console.error(`[Part ${partNumber}] Failed to get signed URL:`, errorText);
+                    throw new Error('Failed to get upload URL');
+                }
 
-        const response = await fetch('http://localhost:5001/api/transcripts/upload', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            },
-            body: formData
-        });
+                const { signedUrl } = await urlResponse.json();
+                console.log(`[Part ${partNumber}] Got signed URL, length: ${signedUrl.length}`);
 
-        if (!response.ok) {
-            throw new Error('Upload failed');
+                const uploadResponse = await fetch(signedUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': data.file.type,
+                        'Content-Length': chunk.size.toString(),
+                    },
+                    body: chunk
+                });
+
+                if (!uploadResponse.ok) {
+                    const errorText = await uploadResponse.text();
+                    console.error(`[Part ${partNumber}] Upload failed:`, {
+                        status: uploadResponse.status,
+                        statusText: uploadResponse.statusText,
+                        error: errorText
+                    });
+                    throw new Error(`Failed to upload part ${partNumber}`);
+                }
+
+                const rawETag = uploadResponse.headers.get('ETag');
+                console.log(`[Part ${partNumber}] Raw ETag from S3:`, rawETag);
+                
+                if (!rawETag) {
+                    throw new Error(`No ETag received for part ${partNumber}`);
+                }
+
+                // Store the ETag exactly as received from S3, no modification needed
+                console.log(`[Part ${partNumber}] Using ETag:`, rawETag);
+                
+                return rawETag;  // Return with quotes intact
+
+            } catch (error) {
+                console.error(`[Part ${partNumber}] Error:`, error);
+                if (attempt < MAX_RETRIES) {
+                    const delayTime = RETRY_DELAY * attempt;
+                    console.log(`[Part ${partNumber}] Waiting ${delayTime}ms before retry`);
+                    await wait(delayTime);
+                    return uploadPartWithRetry(partNumber, chunk, attempt + 1);
+                }
+                throw error;
+            }
+        };
+
+        const completeUploadWithRetry = async (parts, attempt = 1) => {
+            try {
+                const invalidParts = parts.filter(p => !validateETag(p.ETag, p.PartNumber));
+                if (invalidParts.length > 0) {
+                    throw new Error('Invalid ETags detected in parts');
+                }
+
+                const completeResponse = await fetch('http://localhost:5001/api/transcripts/complete-upload', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        transcriptId: transcriptId,
+                        parts: parts
+                    })
+                });
+
+                const responseData = await completeResponse.json();
+                
+                if (!completeResponse.ok) {
+                    throw new Error(responseData.error || 'Failed to complete upload');
+                }
+
+                return responseData; // Return on success
+
+            } catch (error) {
+                if (attempt < MAX_RETRIES) {
+                    const delayTime = RETRY_DELAY * attempt;
+                    await wait(delayTime);
+                    return completeUploadWithRetry(parts, attempt + 1);
+                }
+                throw error;
+            }
+        };
+
+        // First try-catch: Handle the upload process
+        try {
+            setIsLoading(true);
+            const initiateResponse = await fetch('http://localhost:5001/api/transcripts/initiate-upload', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    fileName: data.file.name,
+                    fileType: data.file.type,
+                    fileSize: data.file.size,
+                    projectId,
+                    transcriptName: data.transcriptName,
+                    metadata: data.metadata
+                })
+            });
+
+            if (!initiateResponse.ok) {
+                throw new Error('Failed to initiate upload');
+            }
+
+            const initData = await initiateResponse.json();
+            uploadId = initData.uploadId;
+            transcriptId = initData.transcriptId;
+            s3Key = initData.s3Key;
+            const numberOfParts = initData.numberOfParts;
+            setIsLoading(false);
+
+            setUploadProgress(prev => ({
+                ...prev,
+                [transcriptId]: 0
+            }));
+            setUploadingTranscriptNames(prev => ({
+                ...prev,
+                [transcriptId]: data.transcriptName
+            }));
+
+            const uploadedParts = [];
+
+            for (let partNumber = 1; partNumber <= numberOfParts; partNumber++) {
+                const start = (partNumber - 1) * CHUNK_SIZE;
+                const end = Math.min(start + CHUNK_SIZE, data.file.size);
+                const chunk = data.file.slice(start, end);
+
+                const eTag = await uploadPartWithRetry(partNumber, chunk);
+                
+                const progress = Math.round((partNumber / numberOfParts) * 100);
+                setUploadProgress(prev => ({
+                    ...prev,
+                    [transcriptId]: progress
+                }));
+
+                uploadedParts.push({
+                    PartNumber: partNumber,
+                    ETag: eTag
+                });
+            }
+
+            await completeUploadWithRetry(uploadedParts);
+            
+            // Clear progress after upload completes
+            setUploadProgress(prev => {
+                const newProgress = { ...prev };
+                delete newProgress[transcriptId];
+                return newProgress;
+            });
+            setUploadingTranscriptNames(prev => {
+                const newNames = { ...prev };
+                delete newNames[transcriptId];
+                return newNames;
+            });
+
+            showAlert(`${data.transcriptName} upload complete`, 'success');
+            setTimeout(() => {
+                fetchProjectDetails();
+            }, 3000);
+
+        } catch (error) {
+            if (uploadId || s3Key || transcriptId) {
+                try {
+                    await fetch('http://localhost:5001/api/transcripts/abort-upload', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ 
+                            uploadId, 
+                            s3Key,
+                            transcriptId,
+                            projectId,
+                            deleteFromS3: true
+                        })
+                    });
+                } catch (abortError) {
+                    // Silently handle abort error
+                }
+            }
+            setIsLoading(false);
+            setUploadProgress(prev => {
+                const newProgress = { ...prev };
+                delete newProgress[transcriptId];
+                return newProgress;
+            });
+            setUploadingTranscriptNames(prev => {
+                const newNames = { ...prev };
+                delete newNames[transcriptId];
+                return newNames;
+            });
+            showAlert(`${data.transcriptName} upload failed`, 'error');
+            setTimeout(() => {
+                fetchProjectDetails();
+            }, 3000);
+            return;
         }
 
-        // Remove temp transcript on success
-        setUploadingTranscripts(prev => 
-            prev.filter(t => t.tempId !== tempTranscript.tempId)
-        );
-        
-        setSuccess('File uploaded successfully!');
-        setDialogOpen(false);
-        fetchProjectDetails(); // Refresh the list
+        // Second try-catch: Handle the processing
+        try {
+            const processResponse = await fetch(`http://localhost:5001/api/transcripts/process-transcript/${transcriptId}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!processResponse.ok) {
+                throw new Error(`Failed to process transcript: ${data.transcriptName}`);
+            }
+
+            showAlert(`${data.transcriptName} processing started`, 'success');
+            setTimeout(() => {
+                fetchProjectDetails();
+            }, 3000);
+
+        } catch (error) {
+            showAlert(error.message, 'error');
+            setTimeout(() => {
+                fetchProjectDetails();
+            }, 3000);
+        }
     };
 
     const handleBotInvite = async (data) => {
@@ -267,12 +428,11 @@ function IndividualProjectPage() {
             throw new Error('Failed to invite bot');
         }
 
-        setSuccess('Bot invited successfully!');
+        showAlert('Bot invited successfully!', 'success');
         setDialogOpen(false);
-        fetchProjectDetails(); // Refresh the list
+        fetchProjectDetails();
     };
 
-    // Add this effect for polling bot statuses
     useEffect(() => {
         const pollBotStatuses = async () => {
             const meetingRecordings = transcripts.filter(t => 
@@ -301,7 +461,6 @@ function IndividualProjectPage() {
                 })
             );
 
-            // Update transcripts with new bot statuses
             setTranscripts(prev => prev.map(transcript => ({
                 ...transcript,
                 botStatus: botStatuses.find(([id]) => id === transcript._id)?.[1] || transcript.botStatus
@@ -314,6 +473,13 @@ function IndividualProjectPage() {
 
     return (
         <div className="project-detail-container">
+            {alert && (
+                <Alert
+                    type={alert.type}
+                    message={alert.message}
+                    onClose={() => setAlert(null)}
+                />
+            )}
             {isLoading ? (
                 <div className="loader-container">
                     <Loader />
@@ -339,19 +505,28 @@ function IndividualProjectPage() {
                 </div>
             </div>
 
-            {error && (
-                <div className="message error-message">
-                    {error}
-                </div>
-            )}
-            {success && (
-                <div className="message success-message">
-                    {success}
+            {/* Add this progress bar section */}
+            {Object.keys(uploadProgress).length > 0 && (
+                <div className="upload-progress-container">
+                    <div className="upload-label">
+                        {Object.values(uploadProgress)[0] === 100 
+                            ? `Transcribing and processing ${uploadingTranscriptNames[Object.keys(uploadProgress)[0]]}. This might take some time...`
+                            : `Uploading ${uploadingTranscriptNames[Object.keys(uploadProgress)[0]]}...`
+                        }
+                    </div>
+                    <div className="progress-bar-wrapper">
+                        <div 
+                            className="progress-bar-fill"
+                            style={{ 
+                                width: `${Object.values(uploadProgress)[0]}%`,
+                                backgroundColor: Object.values(uploadProgress)[0] === 100 ? '#22C55E' : '#EAB308' // Green if 100%, Yellow otherwise
+                            }}
+                        />
+                    </div>
                 </div>
             )}
 
-
-               <div className="transcript_container">
+            <div className="transcript_container">
                 {/* Show uploading transcripts first */}
                 {uploadingTranscripts.map(transcript => (
                     <TranscriptDetails
@@ -366,7 +541,11 @@ function IndividualProjectPage() {
                 {transcripts.map((transcript) => (
                     <TranscriptDetails
                         key={transcript._id}
-                        transcript={transcript}
+                        transcript={{
+                            ...transcript,
+                            progress: uploadProgress[transcript._id] || 0,
+                            uploadStatus: transcript.uploadStatus
+                        }}
                         onDelete={fetchProjectDetails}
                     />
                 ))}
@@ -403,19 +582,10 @@ function IndividualProjectPage() {
                 </button>
             )}
 
-            {/* {showBotDialog && (
-                <InviteBotDialog
-                    open={showBotDialog}
-                    onClose={() => setShowBotDialog(false)}
-                    projectId={projectId}
-                />
-            )} */}
-
             <UploadOptionsMenu
                 open={dialogOpen}
                 onClose={() => setDialogOpen(false)}
                 onSubmit={handleSubmit}
-                error={error}
             />
         </div>
     );

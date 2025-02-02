@@ -10,6 +10,7 @@ const projectRoutes = require('./routes/projects');
 const questionRoutes = require('./routes/questions');
 const botRoutes = require('./routes/bot');
 const chatRoutes = require('./routes/chat');
+const { initializeS3 } = require('./utils/s3Operations');
 
 const app = express();
 app.use(cors({
@@ -22,6 +23,13 @@ app.use(cors({
 // Make sure body parser is configured
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Initialize S3 configuration
+initializeS3().catch(error => {
+    console.error('Failed to initialize S3 configuration:', error);
+    // Decide how to handle initialization failure
+    // You might want to exit the process or continue with a warning
+});
 
 // 1. Connect to MongoDB (replace <YOUR_MONGO_URI> with your real connection string)
 mongoose.connect(process.env.MONGODB_URI)

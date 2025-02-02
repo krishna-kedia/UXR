@@ -29,6 +29,12 @@ function UploadOptionsMenu({ open, onClose, onSubmit, error }) {
     const [meetingName, setMeetingName] = useState('');
     const [formError, setFormError] = useState('');
     const [noOfPeople, setNoOfPeople] = useState('');
+    const [metadata, setMetadata] = useState({
+        no_of_people: '',
+        interviewer_name: '',
+        interviewee_names: '',
+        language: ''
+    });
 
     const validateLink = (link) => {
         const validDomains = ['zoom.us', 'meet.google.com'];
@@ -55,6 +61,12 @@ function UploadOptionsMenu({ open, onClose, onSubmit, error }) {
         setMeetingName('');
         setFormError('');
         setNoOfPeople('');
+        setMetadata({
+            no_of_people: '',
+            interviewer_name: '',
+            interviewee_names: '',
+            language: ''
+        });
     };
 
     const handleSubmit = () => {

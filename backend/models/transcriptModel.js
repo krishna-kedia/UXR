@@ -14,65 +14,50 @@ const transcriptSchema = new mongoose.Schema(
     lastProcessingDate: {
       type: Date,
     },
-    fileType: {
+    fileType: String,
+    fileName: String,
+    s3Key: String,
+    s3Url: String,
+    uploadStatus: {
       type: String,
+      enum: ['INITIATING', 'UPLOADING', 'PROCESSING', 'UPLOAD_COMPLETED', 'PROCESSING_FAILED', 'READY_TO_USE'],
+      default: 'INITIATING'
     },
-    text: {
-      type: String
+    uploadId: String,
+    parts: [{
+      partNumber: Number,
+      eTag: String,
+      size: Number
+    }],
+    origin: {
+      type: String,
+      enum: ['user_uploaded', 'meeting_recording']
     },
-    fileName: {
-      type: String
+    metadata: {
+      no_of_people: Number,
+      interviewer_name: String,
+      interviewee_names: String,
+      language: String
+    },
+    text: String,
+    questions: {
+      type: Object,
+      default: {}
     },
     ActiveQuestionsAnswers: {
       type: Object,
       default: {}
     },
-    PastQuestionsArray: {
-      type: Array,
-      default: []
-    },
-    s3Key: {
-      type: String,
-      default: null
-    },
-    s3Url: {
-      type: String,
-      default: null
-    },
-    // file: {
-    //   type: File, 
-    //   default: null
-    // },
-    origin: {
-      type: String,
-      default: null,
-      enum: ['user_uploaded', 'meeting_recording']
-    },
+    PastQuestionsArray: [{
+      dateOfChange: Date,
+      qaObject: Object
+    }],
     bot_session_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'BotSession'
     },
-    questions: {
-      type: Object,
-      default: {}
-    },
-    metadata: {
-      no_of_people: {
-        type: Number,
-        required: false
-      },
-      interviewer_name: {
-        type: String,
-        required: false
-      },
-      interviewee_names: {
-        type: String,
-        required: false
-      },
-      language: {
-        type: String,
-        required: false
-      }
+    fileSize: {
+      type: Number
     }
   },
   { timestamps: true }
