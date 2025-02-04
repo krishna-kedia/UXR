@@ -1,42 +1,89 @@
-/* UXR/frontend/src/components/CreateQuestionOverlay/CreateQuestionOverlay.css */
-.overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+.overlay-content {
+    height: 90vh;
+
+}
+
+.loader-container {
     display: flex;
     justify-content: center;
     align-items: center;
+    height: 100%;
 }
 
-.overlay-content {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    text-align: center;
-    width: 90vw;
-    height: 90vh;
+.error-text {
+    font-family: 'Outfit', sans-serif;
+}
+
+.modal-content {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
+    height: 100%;
+    padding: 40px;
+}
+
+.intro-text {
+    font-family: 'Outfit', sans-serif;
+    font-size: 16px;
+    text-align: center;
+    max-width: 600px;
+    line-height: 1.5;
+    color: #1a1a1a;
+}
+
+.info-box {
+    background: #f7f7f7;
+    padding: 16px;
+    border-radius: 10px;
+    text-align: left;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.info-box h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #444;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+li {
+    display: flex;
+    align-items: flex-start;
+    font-size: 14px;
+    color: #444;
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+
+.icon {
+    margin-right: 10px;
+    font-size: 16px;
 }
 
 .overlay-buttons {
-    margin-top: 20px;
+    padding: 16px;
+    border-top: 1px solid #E5E7EB;
+    justify-content: center;
+    gap: 16px;
 }
 
-.overlay-buttons button {
-    margin: 0 10px;
-    padding: 10px 20px;
-    background-color: black;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+.cancel-button {
+    color: #6B7280;
+    font-family: 'Outfit', sans-serif;
 }
 
-.overlay-buttons button:hover {
-    background-color: #333;
+.save-button, .generate-button {
+    background-color: #0066CC;
+    font-family: 'Outfit', sans-serif;
+}
+
+.save-button:hover, .generate-button:hover {
+    background-color: #0052a3;
 }

@@ -44,6 +44,8 @@ function IndividualProjectPage() {
             const projectData = await response.json();
             setProjectName(projectData.projectName);
 
+            sessionStorage.setItem('projectData', JSON.stringify(projectData));
+
             // Format transcripts from project data
             const formattedTranscripts = projectData.transcripts.map(transcript => ({
                 _id: transcript._id,

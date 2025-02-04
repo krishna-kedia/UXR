@@ -1,12 +1,20 @@
 // UXR/frontend/src/components/CreateQuestionOverlay/CreateQuestionOverlay.js
 import React, { useState } from 'react';
+import { 
+    Dialog, 
+    DialogContent, 
+    DialogActions, 
+    Button, 
+    Typography,
+    Box
+} from '@mui/material';
 import './CreateQuestionOverlay.css';
 import Loader from '../Loader/Loader';
 import QuestionBox from '../QuestionBox/QuestionBox';
 
-function CreateQuestionOverlay({ onClose, projectId, onSave }) {
-    const [loading, setLoading] = useState(false);
+const CreateQuestionOverlay = ({ onClose, projectId, onSave }) => {
     const [questions, setQuestions] = useState([]);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
     const handleGenerateQuestions = async () => {
@@ -53,39 +61,76 @@ function CreateQuestionOverlay({ onClose, projectId, onSave }) {
     };
 
     return (
-        <div className="overlay">
-            <div className="overlay-content">
-                {loading ? (
+        <Dialog 
+            open={true} 
+            onClose={onClose}
+            maxWidth={false}
+            PaperProps={{ className: 'overlay-content' }}
+        >
+            {loading ? (
+                <DialogContent className="loader-container">
                     <Loader />
-                ) : questions.length > 0 ? (
-                    <div>
-                        {questions.map((question, index) => (
-                            <QuestionBox 
-                                key={index} 
-                                question={question} 
-                                onChange={(newText) => handleQuestionChange(index, newText)} 
-                            />
-                        ))}
-                        <div className="overlay-buttons">
-                            <button onClick={handleSave}>Save Questions</button>
-                            <button onClick={onClose}>Go back</button>
-                        </div>
-                    </div>
-                ) : (
-                    <div>
-                        <p>
-                            We will generate questions based on the transcripts provided by you.
-                            Please note that you won't be able to generate questions again in the next 24 hours.
-                        </p>
-                        <div className="overlay-buttons">
-                            <button onClick={onClose}>Go back</button>
-                            <button onClick={handleGenerateQuestions}>Generate questions</button>
-                        </div>
-                    </div>
-                )}
-            </div>
-        </div>
+                </DialogContent>
+            ) : error ? (
+                <DialogContent>
+                    <Typography color="error" className="error-text">
+                        {error}
+                    </Typography>
+                </DialogContent>
+            ) : questions.length > 0 ? (
+                <DialogContent>
+                    {questions.map((question, index) => (
+                        <QuestionBox
+                            key={index}
+                            question={question}
+                            onChange={(newText) => handleQuestionChange(index, newText)}
+                        />
+                    ))}
+                    <DialogActions className="overlay-buttons">
+                        <Button onClick={onClose} className="cancel-button">
+                            Cancel
+                        </Button>
+                        <Button onClick={handleSave} variant="contained" className="save-button">
+                            Save
+                        </Button>
+                    </DialogActions>
+                </DialogContent>
+            ) : (
+                <>
+                    <DialogContent className="modal-content">
+                        <Typography className="intro-text">
+                            AI will generate common questions from all transcripts in this project.
+                        </Typography>
+                        <Box className="info-box">
+                            <Typography variant="h3">Things to keep in mind:</Typography>
+                            <ul>
+                                <li>
+                                    <span className="icon">✔️</span>
+                                    Review and edit questions if they seem inconsistent with the transcripts. Inconsistencies affect the analysis quality.
+                                </li>
+                                <li>
+                                    <span className="icon">⚠️</span>
+                                    AI-generated content isn’t always perfect. You can refine the questions in the next step.
+                                </li>
+                                <li>
+                                    <span className="icon">🔄</span>
+                                    You can’t generate questions again until you upload a new transcript, but you can edit them anytime.
+                                </li>
+                            </ul>
+                        </Box>
+                    </DialogContent>
+                    <DialogActions className="overlay-buttons">
+                        <Button onClick={onClose} className="cancel-button">
+                            Go back
+                        </Button>
+                        <Button onClick={handleGenerateQuestions} variant="contained" className="generate-button">
+                            Generate questions
+                        </Button>
+                    </DialogActions>
+                </>
+            )}
+        </Dialog>
     );
-}
+};
 
 export default CreateQuestionOverlay;

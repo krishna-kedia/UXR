@@ -1,16 +1,28 @@
-.question-box {
-    background-color: white;
-    padding: 16px 20px;
-    border-radius: 8px;
-    margin-bottom: 12px;
-    cursor: text;
+/* 🟢 Modal Styling */
+.modal-container {
+    width: 80vw;
+    height: 80vh;
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
-.question-text {
-    font-family: 'Outfit', sans-serif;
-    font-size: 16px;
-    color: #1a1a1a;
-    margin: 0;
+/* 🟢 Question Box */
+.question-box {
+    background-color: white;
+    padding: 14px 18px;
+    border-radius: 8px;
+    margin: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    border: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
 }
 
 .question-input {
@@ -19,7 +31,25 @@
     font-size: 16px;
     border: none;
     outline: none;
-    padding: 0;
+    flex-grow: 1;
+}
+
+/* Hover Effect */
+.question-box:hover {
+    background-color: #f9f9f9;
+    border-color: #d0d0d0;
+}
+
+/* Text Styling */
+.question-text {
+    font-family: 'Outfit', sans-serif;
+    font-size: 16px;
     color: #1a1a1a;
-    background: transparent;
+    margin: 0;
+    flex-grow: 1;
+}
+
+/* Placeholder Hint */
+.placeholder {
+    color: #888;
 }

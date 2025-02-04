@@ -27,7 +27,9 @@ const QuestionBox = ({ question, onChange }) => {
                     className="question-input"
                 />
             ) : (
-                <p className="question-text">{text}</p>
+                <p className="question-text">
+                    {text || <span className="placeholder">Click to edit...</span>}
+                </p>
             )}
         </div>
     );
