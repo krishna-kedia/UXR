@@ -149,13 +149,13 @@ router.post('/webhook/:webhookId', async (req, res) => {
 
             case 'complete':
                 console.error('Processing complete event');
-                
-                transcript.uploadStatus = 'MEETING_COMPLETED';
-                await transcript.save();
+                const transcript1 = await Transcript.findOne({ bot_session_id: botSession._id });
+                transcript1.uploadStatus = 'MEETING_COMPLETED';
+                await transcript1.save();
 
                 // Find project containing this transcript
                 const project = await Project.findOne({ 
-                    transcripts: { $in: [transcript._id] }
+                    transcripts: { $in: [transcript1._id] }
                 });
                 if (!project) {
                     console.error('Error in bot processing: Project not found for transcript');
@@ -172,13 +172,13 @@ router.post('/webhook/:webhookId', async (req, res) => {
 
                 try {
                     const timestamp = Date.now();
-                    const sanitizedFileName = transcript.transcriptName.replace(/\s+/g, '-');
+                    const sanitizedFileName = transcript1.transcriptName.replace(/\s+/g, '-');
                     const s3FilePath = `upload-data/users/${user._id}/${project._id}/transcripts/${timestamp}-${sanitizedFileName}.mp4`;
                     
                     await processBotFile({
                         botUrl: eventData.data.mp4,
                         s3FilePath,
-                        transcriptId: transcript._id,
+                        transcriptId: transcript1._id,
                     });
 
                     console.error('Bot recording processed successfully');
@@ -189,8 +189,8 @@ router.post('/webhook/:webhookId', async (req, res) => {
 
             case 'failed':
                 console.log('💥 Error:', eventData.data.error);
-                transcript.uploadStatus = 'BOT_FAILED';
-                await transcript.save();
+                    transcript1.uploadStatus = 'BOT_FAILED';
+                await transcript1.save();
                 
                 await BotSession.findByIdAndUpdate(
                     botSession._id,
@@ -219,6 +219,13 @@ router.post('/webhook/:webhookId', async (req, res) => {
     } catch (error) {
         console.error('💥 Webhook error:', error);
         res.status(500).json({ error: error.message });
+        
+        // Find the transcript before updating it
+        const transcript = await Transcript.findOne({ bot_session_id: botSession._id });
+        if (transcript) {
+            transcript.uploadStatus = 'BOT_FAILED';
+            await transcript.save();
+        }
     }
 });
 

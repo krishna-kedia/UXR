@@ -88,7 +88,9 @@ function UploadOptionsMenu({ open, onClose, onSubmit, error }) {
                     }
                 }
             });
+            
             onClose();
+            resetForm();
         } else {
             if (!meetingLink || !meetingName) {
                 setFormError('Please fill in all required fields');
