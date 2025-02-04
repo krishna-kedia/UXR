@@ -71,14 +71,6 @@ router.post('/initiate-upload', auth, async (req, res) => {
         const PART_SIZE = 5 * 1024 * 1024;
         const numberOfParts = Math.ceil(fileSize / PART_SIZE);
 
-        console.log('Initiating upload:', {
-            fileName,
-            fileSize,
-            numberOfParts,
-            PART_SIZE,
-            calculation: `${fileSize} / ${PART_SIZE} = ${fileSize/PART_SIZE}`
-        });
-
         // Create transcript record with fileSize
         const transcript = new Transcript({
             transcriptName: transcriptName || fileName,
@@ -268,7 +260,6 @@ router.patch('/updateQA', auth, async (req, res) => {
 // Abort multipart upload
 router.post('/abort-upload', auth, async (req, res) => {
     try {
-        console.log(req.body)
         const { uploadId, s3Key, transcriptId, projectId, deleteFromS3 } = req.body;
         
         // First, abort the multipart upload in S3
@@ -300,8 +291,6 @@ router.post('/abort-upload', auth, async (req, res) => {
             
             // Delete the transcript
             await Transcript.findByIdAndDelete(transcriptId);
-            
-            console.log(`Successfully removed transcript ${transcriptId} from project ${projectId} and deleted it`);
         }
 
         res.json({ message: 'Upload aborted and cleaned up successfully' });
@@ -338,9 +327,19 @@ router.post('/process-transcript/:transcriptId', auth, async (req, res) => {
         });
 
         if (!processFileResponse.ok) {
+            const errorData = await processFileResponse.json();
             transcript.uploadStatus = 'PROCESSING_FAILED';
             await transcript.save();
-            throw new Error('Failed to process file');
+            
+            throw new Error(
+                JSON.stringify({
+                    message: 'Failed to process file',
+                    status: processFileResponse.status,
+                    statusText: processFileResponse.statusText,
+                    apiError: errorData.detail || errorData.error || 'Unknown processing error',
+                    transcriptId: transcript._id
+                })
+            );
         }
 
         const processFileData = await processFileResponse.json();

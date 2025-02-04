@@ -19,8 +19,6 @@ router.get('/data', auth, async (req, res) => {
         const transcripts = await Transcript.find({ 
             _id: { $in: transcriptIds }
         }).select('transcriptName _id projectId');
-        console.log(projects);
-        console.log(transcripts);
         // 3. Format data for frontend
         const formattedData = projects.map(project => ({
             id: project._id,
@@ -48,7 +46,6 @@ router.get('/data', auth, async (req, res) => {
 // Create new chat session
 router.post('/start', auth, async (req, res) => {
     try {
-        console.log(req.body, "body");
         const { type, projectId, transcriptId, projectName, transcriptName } = req.body;
         // Validate project exists
 

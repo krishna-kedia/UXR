@@ -4,8 +4,10 @@ const Question = require('../models/questionModel');
 const Project = require('../models/projectModel');
 const BotSession = require('../models/botSessionModel');
 const Transcript = require('../models/transcriptModel')
+const User = require('../models/userModel');
 const auth = require('../middleware/auth');
 const crypto = require('crypto');
+const processBotFile = require('../utils/processBotFile');
 
 // Helper function to generate webhook URL
 const generateWebhookUrl = () => {
@@ -69,7 +71,8 @@ router.post('/create', auth, async (req, res) => {
         const transcript = await Transcript.create({
             transcriptName: req.body.meetingName,
             bot_session_id: botSession._id,
-            origin: 'meeting_recording'
+            origin: 'meeting_recording',
+            uploadStatus: 'SCHEDULED_TO_JOIN'
         });
 
         // Update project with transcript
@@ -86,8 +89,14 @@ router.post('/create', auth, async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error creating bot:', error);
-        res.status(500).json({ error: 'Failed to create bot' });
+        console.error('Error in /create:', error);
+        res.status(500).json({
+            success: false,
+            error: {
+                message: 'Failed to create bot',
+                details: error.message
+            }
+        });
     }
 });
 
@@ -96,10 +105,6 @@ router.post('/webhook/:webhookId', async (req, res) => {
     try {
         const { webhookId } = req.params;
         const eventData = req.body;
-        
-        console.log('\n🎯 Webhook endpoint hit');
-        console.log('📍 Webhook ID:', webhookId);
-        console.log('📦 Event Data:', JSON.stringify(eventData, null, 2));
         
         const botSession = await BotSession.findOne({ 
             webhook_url: { $regex: webhookId } 
@@ -110,12 +115,15 @@ router.post('/webhook/:webhookId', async (req, res) => {
             return res.status(404).json({ error: 'Bot session not found' });
         }
 
-        console.log('✅ Found bot session:', botSession._id);
-
         switch (eventData.event) {
             case 'bot.status_change':
-                console.log('🔄 Processing status change event');
-                console.log('📊 New Status:', eventData.data.status.code);
+                let transcript = await Transcript.findOne({ bot_session_id: botSession._id });
+                if (!transcript) {
+                    console.error('Error in bot processing: Associated transcript not found');
+                    break;
+                }
+                transcript.uploadStatus = 'MEETING_STARTED';
+                await transcript.save();
                 
                 await BotSession.findByIdAndUpdate(
                     botSession._id,
@@ -137,75 +145,52 @@ router.post('/webhook/:webhookId', async (req, res) => {
                         }
                     }
                 );
-                console.log('✅ Status update completed');
                 break;
 
             case 'complete':
-                console.log('🎉 Processing complete event');
-                console.log('📹 Recording URL:', eventData.data.mp4);
-                console.log('👥 Number of speakers:', eventData.data.speakers.length);
+                console.error('Processing complete event');
                 
-                await BotSession.findByIdAndUpdate(
-                    botSession._id,
-                    {
-                        status: {
-                            code: 'call_ended',
-                            created_at: new Date()
-                        },
-                        recording_url: eventData.data.mp4,
-                        speakers: eventData.data.speakers,
-                        transcript: eventData.data.transcript,
-                        $push: {
-                            eventLogs: {
-                                type: 'complete',
-                                message: 'Meeting recording completed successfully',
-                                timestamp: new Date()
-                            }
-                        }
-                    }
-                );
-                
-                // Find associated transcript
-                const transcript = await Transcript.findOne({ bot_session_id: botSession._id });
-                if (!transcript) {
-                    console.error('❌ Associated transcript not found');
+                transcript.uploadStatus = 'MEETING_COMPLETED';
+                await transcript.save();
+
+                // Find project containing this transcript
+                const project = await Project.findOne({ 
+                    transcripts: { $in: [transcript._id] }
+                });
+                if (!project) {
+                    console.error('Error in bot processing: Project not found for transcript');
                     break;
                 }
 
-                // Process the recording
+                const user = await User.findOne({
+                    projects: { $in: [project._id] }
+                })
+                if (!user) {
+                    console.error('Error in bot processing: User not found for project');
+                    break;
+                }
+
                 try {
-                    const s3FilePath = `recordings/${botSession._id}/${Date.now()}.mp4`;
+                    const timestamp = Date.now();
+                    const sanitizedFileName = transcript.transcriptName.replace(/\s+/g, '-');
+                    const s3FilePath = `upload-data/users/${user._id}/${project._id}/transcripts/${timestamp}-${sanitizedFileName}.mp4`;
                     
-                    const processResponse = await fetch('http://localhost:5001/api/bot/process-bot-file', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${process.env.API_KEY}`
-                        },
-                        body: JSON.stringify({
-                            bot_url: eventData.data.mp4,
-                            s3_file_path: s3FilePath,
-                            transcriptId: transcript._id
-                        })
+                    await processBotFile({
+                        botUrl: eventData.data.mp4,
+                        s3FilePath,
+                        transcriptId: transcript._id,
                     });
 
-                    if (!processResponse.ok) {
-                        throw new Error('Failed to process bot recording');
-                    }
-                    console.log('✅ Recording processed successfully');
+                    console.error('Bot recording processed successfully');
                 } catch (error) {
-                    console.error('❌ Error processing recording:', error);
-                    await Transcript.findByIdAndUpdate(transcript._id, {
-                        uploadStatus: 'PROCESSING_FAILED'
-                    });
+                    console.error('Error processing bot recording:', error);
                 }
-                
-                console.log('✅ Complete event processed');
                 break;
 
             case 'failed':
-                console.log('❌ Processing failed event');
                 console.log('💥 Error:', eventData.data.error);
+                transcript.uploadStatus = 'BOT_FAILED';
+                await transcript.save();
                 
                 await BotSession.findByIdAndUpdate(
                     botSession._id,
@@ -223,18 +208,16 @@ router.post('/webhook/:webhookId', async (req, res) => {
                         }
                     }
                 );
-                console.log('✅ Failed event processed');
+
                 break;
 
             default:
                 console.log('⚠️ Unknown event type:', eventData.event);
         }
 
-        console.log('✨ Webhook processing completed successfully\n');
         res.status(200).json({ message: 'Webhook processed successfully' });
     } catch (error) {
         console.error('💥 Webhook error:', error);
-        console.error('Stack trace:', error.stack);
         res.status(500).json({ error: error.message });
     }
 });
@@ -242,7 +225,6 @@ router.post('/webhook/:webhookId', async (req, res) => {
 // Get bot session status
 router.get('/status/:botSessionId', auth, async (req, res) => {
     try {
-        console.log('Fetching bot status for:', req.params.botSessionId); // Debug log
         
         const botSession = await BotSession.findById(req.params.botSessionId)
             .select('status eventLogs recording_url')
@@ -261,6 +243,7 @@ router.get('/status/:botSessionId', auth, async (req, res) => {
 
 // Process bot file
 router.post('/process-bot-file', auth, async (req, res) => {
+    console.log(req.body, "req.body for process bot file");
     try {
         const { 
             bot_url,
