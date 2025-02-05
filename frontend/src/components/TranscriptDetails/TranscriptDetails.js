@@ -65,17 +65,23 @@ const TranscriptDetails = ({
     const [uploadStatus, setUploadStatus] = useState(initialUploadStatus);  // Add state
 
     const handleReprocess = async () => {
+        setUploadStatus('PROCESSING');
         try {
-            await fetch(`http://localhost:5001/api/transcripts/process-transcript/${_id}`, {
+            const response = await fetch(`http://localhost:5001/api/transcripts/process-transcript/${_id}`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
                     'Content-Type': 'application/json'
                 }
             });
-            setUploadStatus('PROCESSING');
+            if (response.ok) {
+                setUploadStatus('READY_TO_USE');
+            } else {
+                setUploadStatus('PROCESSING_FAILED');
+            }
         } catch (error) {
             console.error('Failed to reprocess:', error);
+            setUploadStatus('PROCESSING_FAILED');
         }
     };
 
@@ -124,7 +130,7 @@ const TranscriptDetails = ({
             </div>
             
             <div className="transcript-content">
-                <div className="transcript-header">
+                <div className="transcript-details-header">
                     <h3 className="transcript-name">
                         {transcriptName || name}
                     </h3>

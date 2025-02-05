@@ -8,6 +8,7 @@ import axios from 'axios';
 import UploadOptionsMenu from '../../components/UploadOptionsMenu/UploadOptionsMenu';
 import Alert from '../../components/Alert/Alert';
 import Loader from '../../components/Loader/Loader';
+import HandleQuestionOverlay from '../../components/HandleQuestionOverlay/HandleQuestionOverlay';
 
 function IndividualProjectPage() {
     const [transcripts, setTranscripts] = useState([]);
@@ -22,6 +23,7 @@ function IndividualProjectPage() {
     const [uploadingTranscriptNames, setUploadingTranscriptNames] = useState({});
     const [alert, setAlert] = useState(null);
     const [project, setProject] = useState({});
+    const [showQuestionOverlay, setShowQuestionOverlay] = useState(false);
 
     const showAlert = (message, type) => {
         setAlert({ message, type });
@@ -546,9 +548,21 @@ function IndividualProjectPage() {
                                 questionsCreatedDateTime={project.questionsCreatedDateTime}
                                 existingQuestions={project.questions}
                                 hasTranscripts={hasTranscripts}
+                                project={project}
                             />
                         </div>
                     </div>
+
+                    {
+                        showQuestionOverlay && (
+                            <HandleQuestionOverlay
+                                projectId={projectId}
+                                existingQuestions={questions}
+                                onSave={handleSaveQuestions}
+                                onClose={() => setShowQuestionOverlay(false)}
+                            />
+                        )
+                    }
 
                     {showOverlay && (
                         <CreateQuestionOverlay 

@@ -28,7 +28,8 @@ router.get('/:projectId', auth, async (req, res) => {
                 select: ' -pastQuestionsArray -text'
             })
             .populate({
-                path: 'questions'
+                path: 'questions',
+                match: { question: { $ne: '' } } 
             });
 
         if (!project) {

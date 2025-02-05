@@ -29,6 +29,9 @@ const projectSchema = new mongoose.Schema(
       type: Date,
       default: null
     },
+    noOfTranscriptsWhenQuestionsCreated: {
+      type: Number
+    },
     pastQuestions: {
       type: [String],
       default: [],

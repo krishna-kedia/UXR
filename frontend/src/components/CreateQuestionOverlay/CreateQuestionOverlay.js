@@ -13,11 +13,13 @@ import './CreateQuestionOverlay.css';
 import Loader from '../Loader/Loader';
 import QuestionBox from '../QuestionBox/QuestionBox';
 import { useNavigate } from 'react-router-dom';
+import HandleQuestionOverlay from '../HandleQuestionOverlay/HandleQuestionOverlay';
 
-const CreateQuestionOverlay = ({ projectId, onSave, questionsCreatedDateTime, existingQuestions, hasTranscripts }) => {
+const CreateQuestionOverlay = ({ projectId, onSave, questionsCreatedDateTime, existingQuestions, hasTranscripts, project }) => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [showQuestionOverlay, setShowQuestionOverlay] = useState(false);
     const [questions, setQuestions] = useState(
         existingQuestions?.map(q => q.question) || []
     );
@@ -68,6 +70,7 @@ const CreateQuestionOverlay = ({ projectId, onSave, questionsCreatedDateTime, ex
     };
 
     return (
+        <>
         <div className="questions-overlay">
             {loading ? (
                 <div className="loader-container">
@@ -81,7 +84,7 @@ const CreateQuestionOverlay = ({ projectId, onSave, questionsCreatedDateTime, ex
                 <>
                     <div className="questions-header">
                         <div className="header-row">
-                            <Typography variant="h6" className="title">
+                            <Typography className="title">
                                 Questions for the project
                             </Typography>
                             <Button 
@@ -119,7 +122,17 @@ const CreateQuestionOverlay = ({ projectId, onSave, questionsCreatedDateTime, ex
                         <Button 
                             variant="outlined"
                             className="generate-button"
-                            onClick={handleGenerateQuestions}
+                            onClick={() => setShowQuestionOverlay(true)}
+                            disabled={
+                                project?.transcripts?.length === project?.noOfTranscriptsWhenQuestionsCreated ||
+                                !project?.transcripts?.every(transcript => transcript.uploadStatus === "READY_TO_USE")
+                            }
+                            title={project?.transcripts?.length === project?.noOfTranscriptsWhenQuestionsCreated ? 
+                                "AI will only generate the next set of questions when you add another data source. Till then, you'll have to manually edit the questions :)" : 
+                                !project?.transcripts?.every(transcript => transcript.uploadStatus === "READY_TO_USE") ?
+                                "Please wait for all transcripts to finish processing before generating questions" :
+                                ""
+                            }
                             fullWidth
                         >
                             Create questions
@@ -164,6 +177,15 @@ const CreateQuestionOverlay = ({ projectId, onSave, questionsCreatedDateTime, ex
                 </div>
             )}
         </div>
+        {showQuestionOverlay && (
+            <HandleQuestionOverlay
+                projectId={projectId}
+                existingQuestions={questions}
+                onSave={onSave}
+                onClose={() => setShowQuestionOverlay(false)}
+            />
+        )}
+        </>
     );
 };
 

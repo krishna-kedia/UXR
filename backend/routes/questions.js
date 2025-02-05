@@ -4,6 +4,7 @@ const router = express.Router();
 const Question = require('../models/questionModel');
 const Project = require('../models/projectModel');
 const auth = require('../middleware/auth');
+const mongoose = require('mongoose');
 
 // Create multiple questions and update project
 router.post('/', auth, async (req, res) => {
@@ -19,6 +20,12 @@ router.post('/', auth, async (req, res) => {
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
     }
+    let createdQuestions = [];
+    if(questions.length != project.questions.length &&  questions.length > project.questions.length){
+      const extraQuestionsCount = questions.length - project.questions.length;
+      const initialQuestions = Array(extraQuestionsCount).fill().map(() => new Question({ question: '' }));
+      createdQuestions = await Question.insertMany(initialQuestions);
+    }
 
     // Collect past questions
     const pastQuestions = project.questions
@@ -28,7 +35,8 @@ router.post('/', auth, async (req, res) => {
     // Update pastQuestions in the project
     project.pastQuestions.push(...pastQuestions);
     await project.save();
-
+    
+    project.questions.push(...createdQuestions.map(q => q._id));  
     // Update existing question documents with new questions
     const updatePromises = project.questions.map((q, index) => {
       return Question.findByIdAndUpdate(q._id, { question: questions[index] || '' });
@@ -37,6 +45,7 @@ router.post('/', auth, async (req, res) => {
     await Promise.all(updatePromises);
 
     project.questionsCreatedDateTime = Date.now();
+    project.noOfTranscriptsWhenQuestionsCreated = project.transcripts.length;
     await project.save();
 
     res.status(200).json({ message: 'Questions updated successfully' });

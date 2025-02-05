@@ -46,7 +46,7 @@
     gap: 12px;
 }
 
-.transcript-header {
+.transcript-details-header {
     display: flex;
     justify-content: space-between;
 }
