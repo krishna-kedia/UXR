@@ -1,6 +1,6 @@
 /* Main container */
 .project-detail-container {
-    padding: 32px;
+    padding: 12px;
     min-height: 100vh;
 }
 
@@ -14,7 +14,7 @@
 
 /* Project Header */
 .project-detail-header {
-    margin-bottom: 24px;
+    margin-bottom: 16px;
 }
 
 .project-info {
@@ -25,40 +25,45 @@
 
 .project-info h1 {
     font-family: 'Outfit', sans-serif;
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 700;
 }
 
 /* Upload Button */
 .upload-btn {
-    background-color: #1a1a1a;
+    background-color: #0066CC;
     color: white;
-    border-radius: 100px;
-    padding: 8px 16px;
     border: none;
-    font-family: 'Outfit', sans-serif;
+    padding: 8px 16px;
+    border-radius: 6px;
     font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s;
 }
 
 .upload-btn:disabled {
     opacity: 0.7;
     cursor: not-allowed;
-    background-color: #cccccc;
+    background-color: #E5E7EB;
+    color: #9CA3AF;
+}
+
+.upload-btn:hover {
+    background-color: #0052a3;
 }
 
 /* Upload Progress */
 .upload-progress-container {
-    margin: 20px 0;
-    padding: 0 24px;
+    margin: 16px 0;
+    padding: 0 16px;
 }
 
 .upload-label {
     font-family: 'Outfit', sans-serif;
-    font-size: 14px;
+    font-size: 13px;
     color: #1a1a1a;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 .progress-bar-wrapper {
@@ -78,6 +83,7 @@
 .project-content {
     display: flex;
     flex-direction: row;
+    gap: 16px;
 }
 
 .transcripts-section {
@@ -85,8 +91,8 @@
     background-color: #ffffff;
     display: flex;
     flex-direction: column;
-    padding: 16px;
-    gap: 16px;
+    padding: 12px;
+    gap: 12px;
 }
 
 /* .transcript-container {
@@ -99,12 +105,11 @@
     flex: 3;
     background: #ffffff;
     border-radius: 8px;
-    padding: 20px;
-    height: fit-content;
+    padding: 16px;
+    height: 75vh;
     position: sticky;
     top: 24px;
-    height: 80vh;
-    margin-left: 20px;
+    margin-left: 16px;
     width: 40%;
     overflow: scroll;
 }
@@ -187,8 +192,8 @@
 .transcript-card {
     background-color: white;
     border: 1px solid #E5E7EB;
-    border-radius: 8px;
-    padding: 16px;
+    border-radius: 6px;
+    padding: 12px;
     position: relative;
 }
 

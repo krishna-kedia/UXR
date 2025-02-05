@@ -17,7 +17,6 @@
     background-color: white;
     padding: 14px 18px;
     border-radius: 8px;
-    margin: 12px;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
     border: 1px solid #e0e0e0;
@@ -28,7 +27,7 @@
 .question-input {
     width: 100%;
     font-family: 'Outfit', sans-serif;
-    font-size: 16px;
+    font-size: 12px;
     border: none;
     outline: none;
     flex-grow: 1;
@@ -43,7 +42,7 @@
 /* Text Styling */
 .question-text {
     font-family: 'Outfit', sans-serif;
-    font-size: 16px;
+    font-size: 14px;
     color: #1a1a1a;
     margin: 0;
     flex-grow: 1;

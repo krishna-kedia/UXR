@@ -472,6 +472,8 @@ function IndividualProjectPage() {
     //     return () => clearInterval(pollInterval);
     // }, [transcripts]);
 
+    const hasTranscripts = project.transcripts && project.transcripts.length > 0 && project.transcripts.some(transcript => transcript.uploadStatus === 'READY_TO_USE');
+
     return (
         <>
             {isLoading ? (
@@ -524,17 +526,6 @@ function IndividualProjectPage() {
 
                     <div className="project-content">
                         <div className="transcripts-section">
-                                {/* Show uploading transcripts first */}
-                                {uploadingTranscripts.map(transcript => (
-                                    <TranscriptDetails
-                                        key={transcript.tempId}
-                                        transcript={{
-                                            ...transcript,
-                                            isUploading: true
-                                        }}
-                                    />
-                                ))}
-                                {/* Show regular transcripts */}
                                 {transcripts.map((transcript) => (
                                     <TranscriptDetails
                                         key={transcript._id}
@@ -554,7 +545,7 @@ function IndividualProjectPage() {
                                 onSave={handleSaveQuestions}
                                 questionsCreatedDateTime={project.questionsCreatedDateTime}
                                 existingQuestions={project.questions}
-                                transcripts={project.transcripts}
+                                hasTranscripts={hasTranscripts}
                             />
                         </div>
                     </div>

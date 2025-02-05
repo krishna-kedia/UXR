@@ -81,60 +81,34 @@ function AnalysisPage() {
     useEffect(() => {
         const fetchProjectDetails = async () => {
             try {
-                // 1. Fetch project details first
-                const projectResponse = await fetch(`http://localhost:5001/api/projects/${projectId}`, {
+                const response = await fetch(`http://localhost:5001/api/projects/${projectId}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
 
-                if (!projectResponse.ok) {
+                if (!response.ok) {
                     throw new Error('Failed to fetch project details');
                 }
 
-                const projectData = await projectResponse.json();
+                const projectData = await response.json();
                 console.log('Project Data:', projectData);
 
-                // 2. Fetch questions for this project
-                const questionsResponse = await fetch(`http://localhost:5001/api/questions/project/${projectId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
+                // Get questions array from project data
+                const questionsList = projectData.questions?.map(q => q.question) || [];
+                
+                // Get transcripts array from project data
+                const transcriptsList = projectData.transcripts || [];
 
-                if (!questionsResponse.ok) {
-                    throw new Error('Failed to fetch questions');
-                }
-
-                // 3. Fetch transcripts for this project
-                const transcriptsResponse = await fetch(`http://localhost:5001/api/transcripts/project/${projectId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-
-                if (!transcriptsResponse.ok) {
-                    throw new Error('Failed to fetch transcripts');
-                }
-
-                const questionsData = await questionsResponse.json();
-                const transcriptsData = await transcriptsResponse.json();
-
-                console.log('Questions Data:', questionsData);
-                console.log('Transcripts Data:', transcriptsData);
-
-                // Process the data
-                const questionsList = questionsData.map(q => q.question) || [];
-                const transcriptsList = transcriptsData || [];
-
-                setQuestions(questionsList);
-                setTranscripts(transcriptsList);
-
-                // Set initial answers from ActiveQuestionsAnswers
+                // Set initial answers from ActiveQuestionsAnswers in transcripts
                 const initialAnswers = transcriptsList.reduce((acc, transcript) => {
+                    // Each transcript has ActiveQuestionsAnswers object with numbered keys
                     acc[transcript._id] = transcript.ActiveQuestionsAnswers || {};
                     return acc;
                 }, {});
+
+                setQuestions(questionsList);
+                setTranscripts(transcriptsList);
                 setAnswers(initialAnswers);
 
             } catch (error) {

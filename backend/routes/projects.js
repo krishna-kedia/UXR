@@ -25,7 +25,7 @@ router.get('/:projectId', auth, async (req, res) => {
             .select('-pastQuestions')
             .populate({
                 path: 'transcripts',
-                select: '-ActiveQuestionsAnswers -pastQuestionsArray -text'
+                select: ' -pastQuestionsArray -text'
             })
             .populate({
                 path: 'questions'

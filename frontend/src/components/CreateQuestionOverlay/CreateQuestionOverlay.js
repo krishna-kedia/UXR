@@ -14,7 +14,7 @@ import Loader from '../Loader/Loader';
 import QuestionBox from '../QuestionBox/QuestionBox';
 import { useNavigate } from 'react-router-dom';
 
-const CreateQuestionOverlay = ({ projectId, onSave, questionsCreatedDateTime, existingQuestions }) => {
+const CreateQuestionOverlay = ({ projectId, onSave, questionsCreatedDateTime, existingQuestions, hasTranscripts }) => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -118,11 +118,11 @@ const CreateQuestionOverlay = ({ projectId, onSave, questionsCreatedDateTime, ex
                         </Button>
                         <Button 
                             variant="outlined"
-                            className="generate-again-button"
+                            className="generate-button"
                             onClick={handleGenerateQuestions}
                             fullWidth
                         >
-                            Create questions again
+                            Create questions
                         </Button>
                     </div>
                 </>
@@ -149,12 +149,18 @@ const CreateQuestionOverlay = ({ projectId, onSave, questionsCreatedDateTime, ex
                         </ul>
                     </Box>
                     <Button 
-                        onClick={handleGenerateQuestions}
-                        variant="contained"
-                        className="generate-button"
-                    >
-                        Generate Questions
-                    </Button>
+                            variant="outlined"
+                            className="generate-again-button"
+                            onClick={handleGenerateQuestions}
+                            fullWidth
+                        >
+                            Create questions again
+                        </Button>
+                    {!hasTranscripts && (
+                        <Typography className="helper-text">
+                            Add transcripts to generate questions
+                        </Typography>
+                    )}
                 </div>
             )}
         </div>
