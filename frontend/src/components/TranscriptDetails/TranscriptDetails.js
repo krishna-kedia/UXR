@@ -3,6 +3,50 @@ import { Videocam, Person } from '@mui/icons-material'; // Using MUI icons
 import './TranscriptDetails.css';
 import image from './images.jpeg'
 
+const formatTimeAgo = (date) => {
+    const now = new Date();
+    const past = new Date(date);
+    const diffInSeconds = Math.floor((now - past) / 1000);
+    
+    // Less than a minute
+    if (diffInSeconds < 60) {
+        return 'just now';
+    }
+    
+    // Less than an hour
+    if (diffInSeconds < 3600) {
+        const minutes = Math.floor(diffInSeconds / 60);
+        return `${minutes}m ago`;
+    }
+    
+    // Less than a day
+    if (diffInSeconds < 86400) {
+        const hours = Math.floor(diffInSeconds / 3600);
+        return `${hours}h ago`;
+    }
+    
+    // Less than a week
+    if (diffInSeconds < 604800) {
+        const days = Math.floor(diffInSeconds / 86400);
+        return `${days}d ago`;
+    }
+    
+    // Less than a month
+    if (diffInSeconds < 2592000) {
+        const weeks = Math.floor(diffInSeconds / 604800);
+        return `${weeks}w ago`;
+    }
+    
+    // Less than a year
+    if (diffInSeconds < 31536000) {
+        const months = Math.floor(diffInSeconds / 2592000);
+        return `${months}mo ago`;
+    }
+    
+    // More than a year
+    const years = Math.floor(diffInSeconds / 31536000);
+    return `${years}y ago`;
+};
 
 const TranscriptDetails = ({   
     transcript: { 
@@ -78,65 +122,66 @@ const TranscriptDetails = ({
             <div className="transcript-image">
                 <img src={imageUrl} alt={transcriptName} />
             </div>
+            
             <div className="transcript-content">
                 <div className="transcript-header">
                     <h3 className="transcript-name">
                         {transcriptName || name}
                     </h3>
-                    
-                    <div className="status-container">
+                    <span className="created-at">
+                        Created {formatTimeAgo(createdAt)}
+                    </span>
+                </div>
+
+                <div className="status-row">
+                    <Person className="user-icon" />
                     <span className={`status-tag ${getStatusColor(uploadStatus)}`}>
                         {getStatusText(uploadStatus)}
                     </span>
-                    {getOriginIcon(origin)}
                 </div>
-                
-                </div>
-                {origin === 'meeting_recording' && botStatus && botStatus.status && (
-                    <div className={`status-badge ${getStatusColor(botStatus.status.code)}`}>
-                        {botStatus.status.code.replace(/_/g, ' ')}
-                    </div>
-                )}
-                <div className="status-container">
-                    {uploadStatus === 'PROCESSING_FAILED' && (
-                        <button 
-                            className="process-again-btn"
-                            onClick={handleReprocess}
-                        >
-                            Process Again
-                        </button>
-                    )}
-                </div>
-                <div className="transcript-metadata">
+
+                <div className="metadata-row">
                     {metadata && (
-                        <div className="metadata-grid">
+                        <>
                             {metadata.no_of_people && (
-                                <div className="metadata-item">
-                                    <span className="metadata-label">Participants</span>
-                                    <span className="metadata-value">{metadata.no_of_people}</span>
-                                </div>
+                                <span className="metadata-item">
+                                    Participants: {metadata.no_of_people}
+                                </span>
                             )}
                             {metadata.language && (
-                                <div className="metadata-item">
-                                    <span className="metadata-label">Language</span>
-                                    <span className="metadata-value">{metadata.language}</span>
-                                </div>
+                                <>
+                                    <span className="separator">|</span>
+                                    <span className="metadata-item">
+                                        Language: {metadata.language}
+                                    </span>
+                                </>
                             )}
                             {metadata.interviewer_name && (
-                                <div className="metadata-item">
-                                    <span className="metadata-label">Interviewer</span>
-                                    <span className="metadata-value">{metadata.interviewer_name}</span>
-                                </div>
+                                <>
+                                    <span className="separator">|</span>
+                                    <span className="metadata-item">
+                                        Interviewer: {metadata.interviewer_name}
+                                    </span>
+                                </>
                             )}
-                            {metadata.interviewee_names && (
-                                <div className="metadata-item">
-                                    <span className="metadata-label">Interviewee(s)</span>
-                                    <span className="metadata-value">{metadata.interviewee_names}</span>
-                                </div>
-                            )}
-                        </div>
+                        </>
                     )}
                 </div>
+
+                {metadata?.interviewee_names && (
+                    <div className="interviewee-row">
+                        Interviewee(s): {metadata.interviewee_names}
+                    </div>
+                )}
+
+                {uploadStatus === 'PROCESSING_FAILED' && (
+                    <button 
+                        className="process-again-btn"
+                        onClick={handleReprocess}
+                    >
+                        Process again
+                    </button>
+                )}
             </div>
         </div>
     );

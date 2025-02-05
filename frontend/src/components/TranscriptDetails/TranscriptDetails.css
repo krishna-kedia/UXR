@@ -12,53 +12,101 @@
 }
 
 .transcript-card {
+    width: 60%;
+    margin: 10px 0;
     background: white;
     border-radius: 8px;
+    display: flex;
     overflow: hidden;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    padding: 16px;
+    transition: all 0.2s ease;
 }
 
 .transcript-card:hover {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .transcript-image {
-    width: 100%;
-    height: 200px;
-    margin-bottom: 16px;
+    width: 30%;
+    min-width: 30%;
+    position: relative;
 }
 
 .transcript-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 4px;
 }
 
 .transcript-content {
+    width: 70%;
     padding: 20px;
-    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 24px;
-    position: relative;
+    gap: 12px;
 }
 
 .transcript-header {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
 }
 
 .transcript-name {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 500;
-    color: #111827;
+    color: #1a1a1a;
     margin: 0;
-    flex-grow: 1;
+}
+
+.created-at {
+    color: #6B7280;
+    font-size: 14px;
+}
+
+.status-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.user-icon {
+    color: #6B7280;
+    font-size: 20px;
+}
+
+.metadata-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #374151;
+    font-size: 14px;
+}
+
+.separator {
+    color: #D1D5DB;
+}
+
+.interviewee-row {
+    color: #374151;
+    font-size: 14px;
+}
+
+.process-again-btn {
+    align-self: flex-end;
+    padding: 6px 12px;
+    border-radius: 16px;
+    background-color: #991B1B;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background-color 0.2s;
+}
+
+.process-again-btn:hover {
+    background-color: #7F1D1D;
 }
 
 .status-container {
@@ -90,21 +138,6 @@
     color: white;
     text-transform: uppercase;
     font-size: 12px;
-}
-
-.process-again-btn {
-    padding: 4px 12px;
-    border-radius: 16px;
-    font-size: 13px;
-    background-color: #991B1B;
-    color: white;
-    border: none;
-    cursor: pointer;
-    white-space: nowrap;
-}
-
-.process-again-btn:hover {
-    background-color: #7F1D1D;
 }
 
 .metadata-grid {

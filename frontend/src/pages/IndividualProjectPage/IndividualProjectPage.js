@@ -492,9 +492,7 @@ function IndividualProjectPage() {
                 </div>
             )}
             <div className="project-detail-header">
-                <button className="back-btn" onClick={() => navigate('/projects')}>
-                    ← Back to Projects
-                </button>
+                
                 <div className="project-info">
                     <h1>{projectName}</h1>
                     <button 

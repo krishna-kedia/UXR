@@ -1,6 +1,7 @@
 .project-detail-container {
     padding: 32px;
     min-height: 100vh;
+    align-items: left;
 }
 
 .project-detail-header {
@@ -52,10 +53,10 @@
 }
 
 .transcript_container {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
-    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;    
+
 }
 
 .table-header {
