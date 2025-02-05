@@ -7,12 +7,10 @@ import CreateQuestionOverlay from '../../components/CreateQuestionOverlay/Create
 import axios from 'axios';
 import UploadOptionsMenu from '../../components/UploadOptionsMenu/UploadOptionsMenu';
 import Alert from '../../components/Alert/Alert';
-
 import Loader from '../../components/Loader/Loader';
 
 function IndividualProjectPage() {
     const [transcripts, setTranscripts] = useState([]);
-    const [projectName, setProjectName] = useState('');
     const [questions, setQuestions] = useState([]);
     const [showOverlay, setShowOverlay] = useState(false);
     const { projectId } = useParams();
@@ -23,7 +21,6 @@ function IndividualProjectPage() {
     const [uploadProgress, setUploadProgress] = useState({});
     const [uploadingTranscriptNames, setUploadingTranscriptNames] = useState({});
     const [alert, setAlert] = useState(null);
-    const [questionsCreated, setQuestionsCreated] = useState(false);
     const [project, setProject] = useState({});
 
     const showAlert = (message, type) => {
@@ -476,128 +473,122 @@ function IndividualProjectPage() {
     // }, [transcripts]);
 
     return (
-        <div className="project-detail-container">
-            {alert && (
-                <Alert
-                    type={alert.type}
-                    message={alert.message}
-                    onClose={() => setAlert(null)}
-                />
-            )}
+        <>
             {isLoading ? (
                 <div className="loader-container">
                     <Loader />
                 </div>
             ) : (
-                <div className='project-chat-container'>
-                
-                </div>
-            )}
-            <div className="project-detail-header">
-                
-                <div className="project-info">
-                    <h1>{project.projectName}</h1>
-                    <button 
-                        className="upload-btn"
-                        onClick={() => setDialogOpen(true)}
-                        disabled={isLoading}
-                    >
-                        Add new transcript
-                    </button>
-                <button 
-                    className="generate-questions-btn"
-                    onClick={() => setShowOverlay(true)}
-                >
-                    Generate Questions
-                </button>
-                </div>
-            </div>
-
-            {/* Add this progress bar section */}
-            {Object.keys(uploadProgress).length > 0 && (
-                <div className="upload-progress-container">
-                    <div className="upload-label">
-                        {Object.values(uploadProgress)[0] === 100 
-                            ? `Transcribing and processing ${uploadingTranscriptNames[Object.keys(uploadProgress)[0]]}. This might take some time...`
-                            : `Uploading ${uploadingTranscriptNames[Object.keys(uploadProgress)[0]]}...`
-                        }
-                    </div>
-                    <div className="progress-bar-wrapper">
-                        <div 
-                            className="progress-bar-fill"
-                            style={{ 
-                                width: `${Object.values(uploadProgress)[0]}%`,
-                                backgroundColor: Object.values(uploadProgress)[0] === 100 ? '#22C55E' : '#EAB308' // Green if 100%, Yellow otherwise
-                            }}
+                <div className="project-detail-container">
+                    {alert && (
+                        <Alert
+                            type={alert.type}
+                            message={alert.message}
+                            onClose={() => setAlert(null)}
                         />
+                    )}
+                    
+                    <div className="project-detail-header">
+                        <div className="project-info">
+                            <h1>{project.projectName}</h1>
+                            <button 
+                                className="upload-btn"
+                                onClick={() => setDialogOpen(true)}
+                                disabled={isLoading}
+                            >
+                                Add new transcript
+                            </button>
+                        </div>
                     </div>
-                </div>
-            )}
 
-            <div className="project-content">
-                <div className="transcripts-section">
-                        {/* Show uploading transcripts first */}
-                        {uploadingTranscripts.map(transcript => (
-                            <TranscriptDetails
-                                key={transcript.tempId}
-                                transcript={{
-                                    ...transcript,
-                                    isUploading: true
-                                }}
-                            />
-                        ))}
-                        {/* Show regular transcripts */}
-                        {transcripts.map((transcript) => (
-                            <TranscriptDetails
-                                key={transcript._id}
-                                transcript={{
-                                    ...transcript,
-                                    progress: uploadProgress[transcript._id] || 0,
-                                    uploadStatus: transcript.uploadStatus
-                                }}
-                                onDelete={fetchProjectDetails}
-                            />
-                        ))}
-                </div>
+                    {/* Upload Progress */}
+                    {Object.keys(uploadProgress).length > 0 && (
+                        <div className="upload-progress-container">
+                            <div className="upload-label">
+                                {Object.values(uploadProgress)[0] === 100 
+                                    ? `Transcribing and processing ${uploadingTranscriptNames[Object.keys(uploadProgress)[0]]}. This might take some time...`
+                                    : `Uploading ${uploadingTranscriptNames[Object.keys(uploadProgress)[0]]}...`
+                                }
+                            </div>
+                            <div className="progress-bar-wrapper">
+                                <div 
+                                    className="progress-bar-fill"
+                                    style={{ 
+                                        width: `${Object.values(uploadProgress)[0]}%`,
+                                        backgroundColor: Object.values(uploadProgress)[0] === 100 ? '#22C55E' : '#EAB308' // Green if 100%, Yellow otherwise
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    )}
 
-                <div className="questions-section">
-                    <CreateQuestionOverlay 
-                        projectId={projectId}
-                        onSave={handleSaveQuestions}
-                        questionsCreatedDateTime={project.questionsCreatedDateTime}
-                        existingQuestions={project.questions}
+                    <div className="project-content">
+                        <div className="transcripts-section">
+                                {/* Show uploading transcripts first */}
+                                {uploadingTranscripts.map(transcript => (
+                                    <TranscriptDetails
+                                        key={transcript.tempId}
+                                        transcript={{
+                                            ...transcript,
+                                            isUploading: true
+                                        }}
+                                    />
+                                ))}
+                                {/* Show regular transcripts */}
+                                {transcripts.map((transcript) => (
+                                    <TranscriptDetails
+                                        key={transcript._id}
+                                        transcript={{
+                                            ...transcript,
+                                            progress: uploadProgress[transcript._id] || 0,
+                                            uploadStatus: transcript.uploadStatus
+                                        }}
+                                        onDelete={fetchProjectDetails}
+                                    />
+                                ))}
+                        </div>
+
+                        <div className="questions-section">
+                            <CreateQuestionOverlay 
+                                projectId={projectId}
+                                onSave={handleSaveQuestions}
+                                questionsCreatedDateTime={project.questionsCreatedDateTime}
+                                existingQuestions={project.questions}
+                                transcripts={project.transcripts}
+                            />
+                        </div>
+                    </div>
+
+                    {showOverlay && (
+                        <CreateQuestionOverlay 
+                            onClose={() => setShowOverlay(false)} 
+                            projectId={projectId}
+                            onSave={handleSaveQuestions}
+                        />
+                    )}
+
+                    {questions.map((question, index) => (
+                        <QuestionBox 
+                            key={index} 
+                            question={question} 
+                            onChange={(newText) => handleQuestionChange(index, newText)} 
+                        />
+                    ))}
+
+                    {questions.length > 0 && (
+                        <button className="save-questions-btn" onClick={handleSaveQuestions}>
+                            Save Questions
+                        </button>
+                    )}
+
+                    <UploadOptionsMenu
+                        open={dialogOpen}
+                        onClose={() => setDialogOpen(false)}
+                        onSubmit={handleSubmit}
                     />
                 </div>
-            </div>
-
-            {showOverlay && (
-                <CreateQuestionOverlay 
-                    onClose={() => setShowOverlay(false)} 
-                    projectId={projectId}
-                    onSave={handleSaveQuestions}
-                />
             )}
-
-            {questions.map((question, index) => (
-                <QuestionBox 
-                    key={index} 
-                    question={question} 
-                    onChange={(newText) => handleQuestionChange(index, newText)} 
-                />
-            ))}
-
-            {questions.length > 0 && (
-                <button className="save-questions-btn" onClick={handleSaveQuestions}>
-                    Save Questions
-                </button>
-            )}
-
-            <UploadOptionsMenu
-                open={dialogOpen}
-                onClose={() => setDialogOpen(false)}
-                onSubmit={handleSubmit}
-            />
-        </div>
+        </>
     );
 }
 

@@ -6,17 +6,22 @@ import {
     DialogActions, 
     Button, 
     Typography,
-    Box
+    Box,
+    Divider
 } from '@mui/material';
 import './CreateQuestionOverlay.css';
 import Loader from '../Loader/Loader';
 import QuestionBox from '../QuestionBox/QuestionBox';
+import { useNavigate } from 'react-router-dom';
 
 const CreateQuestionOverlay = ({ projectId, onSave, questionsCreatedDateTime, existingQuestions }) => {
-    const [questions, setQuestions] = useState([]);
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    console.log(existingQuestions, questionsCreatedDateTime);
+    const [questions, setQuestions] = useState(
+        existingQuestions?.map(q => q.question) || []
+    );
+    console.log(questions);
 
     const handleGenerateQuestions = async () => {
         setLoading(true);
@@ -36,18 +41,30 @@ const CreateQuestionOverlay = ({ projectId, onSave, questionsCreatedDateTime, ex
             }
 
             const data = await response.json();
+            console.log(data);
             setQuestions(Object.values(data));
+            await onSave(Object.values(data));
         } catch (error) {
             setError('Failed to generate questions');
+            console.log(error);
         } finally {
             setLoading(false);
         }
+
+
     };
 
     const handleQuestionChange = (index, newText) => {
-        const updatedQuestions = [...questions];
-        updatedQuestions[index] = newText;
-        setQuestions(updatedQuestions);
+        setQuestions(prevQuestions => {
+            const updatedQuestions = [...prevQuestions];
+            updatedQuestions[index] = newText;
+            return updatedQuestions;
+        });
+        
+    };
+
+    const handleAnalysisClick = () => {
+        navigate(`/analysis/${projectId}`);
     };
 
     return (
@@ -61,23 +78,54 @@ const CreateQuestionOverlay = ({ projectId, onSave, questionsCreatedDateTime, ex
                     <Typography color="error">{error}</Typography>
                 </div>
             ) : questionsCreatedDateTime ? (
-                <div className="questions-list">
-                    <Typography variant="h6">Questions for this project</Typography>
-                    {existingQuestions.map((question, index) => (
-                        <QuestionBox
-                            key={index}
-                            question={question.question}
-                            onChange={(newText) => handleQuestionChange(index, newText)}
-                        />
-                    ))}
-                    <Button 
-                        onClick={() => onSave(questions)}
-                        variant="contained"
-                        className="save-button"
-                    >
-                        Save Changes
-                    </Button>
-                </div>
+                <>
+                    <div className="questions-header">
+                        <div className="header-row">
+                            <Typography variant="h6" className="title">
+                                Questions for the project
+                            </Typography>
+                            <Button 
+                                variant="outlined" 
+                                className="analysis-btn"
+                                onClick={handleAnalysisClick}
+                            >
+                                See analysis
+                            </Button>
+                        </div>
+                        <Typography className="created-date">
+                            Questions created on: {new Date(questionsCreatedDateTime).toLocaleDateString()}
+                        </Typography>
+                    </div>
+
+                    <div className="questions-content">
+                        {existingQuestions?.map((questionObj, index) => (
+                            <QuestionBox
+                                key={questionObj._id || index}
+                                question={questionObj.question}
+                                onChange={(newText) => handleQuestionChange(index, newText)}
+                            />
+                        ))}
+                    </div>
+
+                    <div className="questions-footer">
+                        <Button 
+                            variant="contained"
+                            className="save-button"
+                            onClick={() => onSave(questions)}
+                            fullWidth
+                        >
+                            Save changes
+                        </Button>
+                        <Button 
+                            variant="outlined"
+                            className="generate-again-button"
+                            onClick={handleGenerateQuestions}
+                            fullWidth
+                        >
+                            Create questions again
+                        </Button>
+                    </div>
+                </>
             ) : (
                 <div className="generate-questions">
                     <Typography className="intro-text">
