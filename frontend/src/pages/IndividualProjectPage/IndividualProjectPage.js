@@ -23,6 +23,8 @@ function IndividualProjectPage() {
     const [uploadProgress, setUploadProgress] = useState({});
     const [uploadingTranscriptNames, setUploadingTranscriptNames] = useState({});
     const [alert, setAlert] = useState(null);
+    const [questionsCreated, setQuestionsCreated] = useState(false);
+    const [project, setProject] = useState({});
 
     const showAlert = (message, type) => {
         setAlert({ message, type });
@@ -42,8 +44,7 @@ function IndividualProjectPage() {
             }
             
             const projectData = await response.json();
-            setProjectName(projectData.projectName);
-
+            setProject(projectData);
             sessionStorage.setItem('projectData', JSON.stringify(projectData));
 
             // Format transcripts from project data
@@ -81,6 +82,7 @@ function IndividualProjectPage() {
     };
 
     const handleSaveQuestions = async (questionsToSave) => {
+        console.log(questionsToSave);
         try {
             const response = await fetch('http://localhost:5001/api/questions', {
                 method: 'POST',
@@ -494,7 +496,7 @@ function IndividualProjectPage() {
             <div className="project-detail-header">
                 
                 <div className="project-info">
-                    <h1>{projectName}</h1>
+                    <h1>{project.projectName}</h1>
                     <button 
                         className="upload-btn"
                         onClick={() => setDialogOpen(true)}
@@ -532,29 +534,40 @@ function IndividualProjectPage() {
                 </div>
             )}
 
-            <div className="transcript_container">
-                {/* Show uploading transcripts first */}
-                {uploadingTranscripts.map(transcript => (
-                    <TranscriptDetails
-                        key={transcript.tempId}
-                        transcript={{
-                            ...transcript,
-                            isUploading: true
-                        }}
+            <div className="project-content">
+                <div className="transcripts-section">
+                        {/* Show uploading transcripts first */}
+                        {uploadingTranscripts.map(transcript => (
+                            <TranscriptDetails
+                                key={transcript.tempId}
+                                transcript={{
+                                    ...transcript,
+                                    isUploading: true
+                                }}
+                            />
+                        ))}
+                        {/* Show regular transcripts */}
+                        {transcripts.map((transcript) => (
+                            <TranscriptDetails
+                                key={transcript._id}
+                                transcript={{
+                                    ...transcript,
+                                    progress: uploadProgress[transcript._id] || 0,
+                                    uploadStatus: transcript.uploadStatus
+                                }}
+                                onDelete={fetchProjectDetails}
+                            />
+                        ))}
+                </div>
+
+                <div className="questions-section">
+                    <CreateQuestionOverlay 
+                        projectId={projectId}
+                        onSave={handleSaveQuestions}
+                        questionsCreatedDateTime={project.questionsCreatedDateTime}
+                        existingQuestions={project.questions}
                     />
-                ))}
-                {/* Show regular transcripts */}
-                {transcripts.map((transcript) => (
-                    <TranscriptDetails
-                        key={transcript._id}
-                        transcript={{
-                            ...transcript,
-                            progress: uploadProgress[transcript._id] || 0,
-                            uploadStatus: transcript.uploadStatus
-                        }}
-                        onDelete={fetchProjectDetails}
-                    />
-                ))}
+                </div>
             </div>
 
             {showOverlay && (

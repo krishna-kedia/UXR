@@ -10,6 +10,7 @@
     left: 0;
     top: 0;
     overflow: hidden;
+    z-index: 1000;
 }
 
 .sidebar.collapsed {

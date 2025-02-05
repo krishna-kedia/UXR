@@ -9,6 +9,7 @@ const auth = require('../middleware/auth');
 router.post('/', auth, async (req, res) => {
   try {
     const { questions, projectId } = req.body;
+    console.log(questions, projectId);
 
     if (!Array.isArray(questions) || questions.length === 0) {
       return res.status(400).json({ error: 'Questions array is required' });

@@ -27,6 +27,7 @@ const projectSchema = new mongoose.Schema(
     },  
     questionsCreatedDateTime: {
       type: Date,
+      default: null
     },
     pastQuestions: {
       type: [String],

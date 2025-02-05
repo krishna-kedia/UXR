@@ -82,8 +82,12 @@ li {
 .save-button, .generate-button {
     background-color: #0066CC;
     font-family: 'Outfit', sans-serif;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
 }
 
 .save-button:hover, .generate-button:hover {
     background-color: #0052a3;
+
 }

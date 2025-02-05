@@ -1,28 +1,116 @@
+/* Main container */
 .project-detail-container {
     padding: 32px;
     min-height: 100vh;
-    align-items: left;
 }
 
-.project-detail-header {
+/* Loader */
+.loader-container {
     display: flex;
-    flex-direction: column;
-    margin-bottom: 24px;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
 }
 
-.back-button {
-    margin-bottom: 8px;
+/* Project Header */
+.project-detail-header {
+    margin-bottom: 24px;
 }
 
 .project-info {
     display: flex;
-    justify-content: row;
+    align-items: center;
+    gap: 16px;
 }
 
 .project-info h1 {
     font-family: 'Outfit', sans-serif;
     font-size: 24px;
     font-weight: 700;
+}
+
+/* Upload Button */
+.upload-btn {
+    background-color: #1a1a1a;
+    color: white;
+    border-radius: 100px;
+    padding: 8px 16px;
+    border: none;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.upload-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    background-color: #cccccc;
+}
+
+/* Upload Progress */
+.upload-progress-container {
+    margin: 20px 0;
+    padding: 0 24px;
+}
+
+.upload-label {
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    color: #1a1a1a;
+    margin-bottom: 8px;
+}
+
+.progress-bar-wrapper {
+    width: 100%;
+    height: 4px;
+    background-color: #E5E7EB;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+/* Main Content Layout */
+.project-content {
+    display: flex;
+    flex-direction: row;
+}
+
+.transcripts-section {
+    flex: 7;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    gap: 16px;
+}
+
+/* .transcript-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+} */
+
+.questions-section {
+    flex: 3;
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 20px;
+    height: fit-content;
+    position: sticky;
+    top: 24px;
+    height: 80vh;
+    margin-left: 20px;
+    width: 40%;
+    overflow: scroll;
+}
+
+.back-button {
+    margin-bottom: 8px;
 }
 
 .back-btn {
@@ -33,48 +121,6 @@
     font-family: 'Outfit', sans-serif;
     font-size: 14px;
     padding: 8px 0;
-}
-
-.upload-btn {
-    transition: background-color 0.2s ease;
-    background-color: #1a1a1a !important;
-    color: white !important;
-    border-radius: 100px !important;
-    text-transform: none !important;
-    font-family: 'Outfit', sans-serif !important;
-    font-size: 14px !important;
-    font-weight: 400 !important;
-}
-
-.upload-btn:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    background-color: #cccccc;
-}
-
-.transcript_container {
-    display: flex;
-    flex-direction: column;
-    width: 100%;    
-
-}
-
-.table-header {
-    display: flex;
-    padding: 16px 24px;
-    border-bottom: 1px solid #e0e0e0;
-    font-family: 'Outfit', sans-serif;
-}
-
-.header-name {
-    flex: 1;
-    font-weight: 500;
-}
-
-.header-date {
-    width: 200px;
-    text-align: right;
-    font-weight: 500;
 }
 
 .message {
@@ -118,13 +164,6 @@
 
 .generate-questions-btn:hover, .save-questions-btn:hover {
     background-color: #0056b3;
-}
-
-.loader-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
 }
 
 .generate-questions-container {
@@ -178,29 +217,4 @@
     font-size: 14px;
     font-weight: 500;
     color: #1a1a1a;
-}
-
-.upload-progress-container {
-    margin: 20px 0;
-    padding: 0 24px;
-}
-
-.upload-label {
-    font-family: 'Outfit', sans-serif;
-    font-size: 14px;
-    color: #1a1a1a;
-    margin-bottom: 8px;
-}
-
-.progress-bar-wrapper {
-    width: 100%;
-    height: 4px;
-    background-color: #E5E7EB;
-    border-radius: 2px;
-    overflow: hidden;
-}
-
-.progress-bar-fill {
-    height: 100%;
-    transition: width 0.3s ease;
 }

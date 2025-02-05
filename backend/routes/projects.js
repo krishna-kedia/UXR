@@ -25,13 +25,16 @@ router.get('/:projectId', auth, async (req, res) => {
             .select('-pastQuestions')
             .populate({
                 path: 'transcripts',
-                select: '-questions -ActiveQuestionsAnswers -pastQuestionsArray -text'
+                select: '-ActiveQuestionsAnswers -pastQuestionsArray -text'
+            })
+            .populate({
+                path: 'questions'
             });
 
         if (!project) {
             return res.status(404).json({ error: 'Project not found' });
         }
-
+        console.log(project);
         res.json(project);
     } catch (error) {
         console.error('Error fetching project:', error);
