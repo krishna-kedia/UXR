@@ -23,14 +23,14 @@ const CreateQuestionOverlay = ({ projectId, onSave, questionsCreatedDateTime, ex
     const [questions, setQuestions] = useState(
         existingQuestions?.map(q => q.question) || []
     );
-    console.log(questions);
 
     const handleGenerateQuestions = async () => {
         setLoading(true);
         setError(null);
+        console.log(projectId, "project id");
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/generate-questions/', {
+            const response = await fetch(`http://127.0.0.1:8000/generate-questions/${projectId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -43,7 +43,6 @@ const CreateQuestionOverlay = ({ projectId, onSave, questionsCreatedDateTime, ex
             }
 
             const data = await response.json();
-            console.log(data);
             setQuestions(Object.values(data));
             await onSave(Object.values(data));
         } catch (error) {

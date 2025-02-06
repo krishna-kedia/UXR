@@ -11,32 +11,56 @@ const HandleQuestionOverlay = ({ existingQuestions, onSave, onClose }) => {
     const {projectId} = useParams();
 
     useEffect(() => {
+        setLoading(true);
+        const generateQuestions = async () => {
+            
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/generate-questions/${projectId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ project_id: projectId })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to generate questions');
+                }
+
+                const data = await response.json();
+                setNewQuestions(Object.values(data) || []);
+            } catch (error) {
+                console.error('Error generating questions:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
         generateQuestions();
-    }, []);
+    }, [projectId]); 
 
     const generateQuestions = async () => {
-        try {
-            setLoading(true);
-            const response = await fetch('http://127.0.0.1:8000/generate-questions/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ project_id: projectId })
-            });
+        // try {
+            
+        //     const response = await fetch(`http://127.0.0.1:8000/generate-questions/${projectId}`, {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json',
+        //         },
+        //         body: JSON.stringify({ project_id: projectId })
+        //     });
 
-            if (!response.ok) {
-                throw new Error('Failed to generate questions');
-            }
+        //     if (!response.ok) {
+        //         throw new Error('Failed to generate questions');
+        //     }
 
-            const data = await response.json();
-            console.log(data);
-            setNewQuestions(Object.values(data) || []);
-        } catch (error) {
-            console.error('Error generating questions:', error);
-        } finally {
-            setLoading(false);
-        }
+        //     const data = await response.json();
+        //     setNewQuestions(Object.values(data) || []);
+        // } catch (error) {
+        //     console.error('Error generating questions:', error);
+        // } finally {
+        //     setLoading(false);
+        // }
     };
 
     const handleDelete = (index, isNew = false) => {
@@ -45,7 +69,6 @@ const HandleQuestionOverlay = ({ existingQuestions, onSave, onClose }) => {
         } else {
             setCurrentQuestions(prev => prev.filter((_, i) => i !== index));
         }
-        console.log(currentQuestions, "handle delete")
         
     };
 
@@ -55,19 +78,16 @@ const HandleQuestionOverlay = ({ existingQuestions, onSave, onClose }) => {
         } else {
             setCurrentQuestions(prev => prev.map((q, i) => i === index ? newText : q));
         }
-        console.log(currentQuestions, "handle edit")
     };
 
     const handleMove = (index) => {
         const questionToMove = newQuestions[index];
         setNewQuestions(prev => prev.filter((_, i) => i !== index));
         setCurrentQuestions(prev => [...prev, questionToMove]);
-        console.log(currentQuestions, "handle move")
     };
 
     const handleAddNew = () => {
         setCurrentQuestions(prev => [...prev, '']); 
-        console.log(currentQuestions, "handle add new")
     };
 
     const handleBackdropClick = (e) => {

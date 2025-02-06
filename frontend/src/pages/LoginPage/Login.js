@@ -28,7 +28,6 @@ function Login() {
                     password
                   };
 
-            console.log('Attempting to fetch:', `http://localhost:5001${endpoint}`);
             
             const response = await fetch(`http://localhost:5001${endpoint}`, {
                 method: 'POST',
@@ -39,9 +38,9 @@ function Login() {
                 body: JSON.stringify(body)
             });
 
-            console.log('Response status:', response.status);
+
             const data = await response.json();
-            console.log('Response data:', data);
+
 
             if (!response.ok) {
                 throw new Error(data.error || 'Something went wrong');
@@ -60,7 +59,6 @@ function Login() {
 
     const handleGoogleLogin = () => {
         // Add Google authentication logic here
-        console.log('Google login clicked');
     };
 
     return (

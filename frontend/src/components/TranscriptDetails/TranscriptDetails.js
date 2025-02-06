@@ -59,29 +59,61 @@ const TranscriptDetails = ({
         botStatus,
         createdAt,
         uploadStatus: initialUploadStatus,
-        progress
+        progress,
+        s3Url
     } 
 }) => {
     const [uploadStatus, setUploadStatus] = useState(initialUploadStatus);  // Add state
 
     const handleReprocess = async () => {
+        // Step 1: Transcribe
         setUploadStatus('PROCESSING');
+        
+        console.log({_id}, "transcript id");
+        const transcriptId = {_id}._id
         try {
-            const response = await fetch(`http://localhost:5001/api/transcripts/process-transcript/${_id}`, {
+            const transcribeResponse = await fetch(`http://localhost:5001/api/transcripts/transcribe/${transcriptId}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    fileUrl: 's3Url',
+                    transcribeMethod: 'aws',
+                    transcribeLang: 'en-US',
+                    transcribeSpeakerNumber: 2
+                })
+            });
+            if (!transcribeResponse.ok) {
+                setUploadStatus('PROCESSING_FAILED');
+                throw new Error('Transcription failed');
+            }
+            setUploadStatus('PROCESSED');
+        } catch (error) {
+            console.error('Failed to transcribe:', error);
+            setUploadStatus('PROCESSING_FAILED');
+            return;
+        }
+
+        // Step 2: Generate Questions
+        try {
+            setUploadStatus('GENERATING_QUESTIONS');
+            const questionsResponse = await fetch(`http://localhost:5001/api/transcripts/generate-transcript-questions/${_id}`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
                     'Content-Type': 'application/json'
                 }
             });
-            if (response.ok) {
-                setUploadStatus('READY_TO_USE');
-            } else {
-                setUploadStatus('PROCESSING_FAILED');
+            if (!questionsResponse.ok) {
+                setUploadStatus('QUESTION_GENERATION_FAILED');
+                throw new Error('Question generation failed');
             }
+            setUploadStatus('READY_TO_USE');
         } catch (error) {
-            console.error('Failed to reprocess:', error);
-            setUploadStatus('PROCESSING_FAILED');
+            console.error('Failed to generate questions:', error);
+            setUploadStatus('QUESTION_GENERATION_FAILED');
         }
     };
 

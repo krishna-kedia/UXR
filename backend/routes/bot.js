@@ -7,7 +7,10 @@ const Transcript = require('../models/transcriptModel')
 const User = require('../models/userModel');
 const auth = require('../middleware/auth');
 const crypto = require('crypto');
-const processBotFile = require('../utils/processBotFile');
+const {processBotFile,
+    uploadToS3,
+    processTranscript,
+    generateTranscriptQuestions} = require('../utils/processBotFile');
 
 // Helper function to generate webhook URL
 const generateWebhookUrl = () => {
@@ -171,19 +174,58 @@ router.post('/webhook/:webhookId', async (req, res) => {
                 }
 
                 try {
-                    const timestamp = Date.now();
+                    const sessionId = botSession._id
                     const sanitizedFileName = transcript1.transcriptName.replace(/\s+/g, '-');
                     const s3FilePath = `upload-data/users/${user._id}/${project._id}/transcripts/${timestamp}-${sanitizedFileName}.mp4`;
                     
-                    await processBotFile({
-                        botUrl: eventData.data.mp4,
-                        s3FilePath,
+                    // Step 1: Upload to S3
+                    try {
+                        await uploadToS3({
+                            botUrl: eventData.data.mp4,
+                            s3FilePath,
+                            sessionId: sessionId
+                        });
+                        await Transcript.findByIdAndUpdate(transcript1._id, {
+                            uploadStatus: 'UPLOAD_COMPLETED',
+                            s3Key: s3FilePath,
+                            s3Url: `https://${process.env.AWS_BUCKET_NAME}.s3.amazonaws.com/${s3FilePath}`
+                        });
+                    } catch (error) {
+                        await Transcript.findByIdAndUpdate(transcript1._id, {
+                            uploadStatus: 'UPLOAD_FAILED'
+                        });
+                        throw error;
+                    }
+
+                    // Step 2: Process Transcript
+                    const transcript = await processTranscript({
+                        fileUrl: `https://${process.env.AWS_BUCKET_NAME}.s3.amazonaws.com/${s3FilePath}`,
                         transcriptId: transcript1._id,
+                        transcribeMethod: 'aws',
+                        transcribeLang: 'en-US',
+                        transcribeSpeakerNumber: 2
+                    });
+                    await Transcript.findByIdAndUpdate(transcript1._id, {
+                        text: transcript,
+                        uploadStatus: 'PROCESSED'
                     });
 
-                    console.error('Bot recording processed successfully');
+                    // Step 3: Generate Questions
+                    const questions = await generateTranscriptQuestions(transcript1._id);
+                    await Transcript.findByIdAndUpdate(transcript1._id, {
+                        questions,
+                        uploadStatus: 'READY_TO_USE'
+                    });
+
                 } catch (error) {
                     console.error('Error processing bot recording:', error);
+                    // Only update status if it's not already UPLOAD_FAILED
+                    const currentTranscript = await Transcript.findById(transcript1._id);
+                    if (currentTranscript.uploadStatus !== 'UPLOAD_FAILED') {
+                        await Transcript.findByIdAndUpdate(transcript1._id, {
+                            uploadStatus: 'PROCESSING_FAILED'
+                        });
+                    }
                 }
                 break;
 
@@ -248,60 +290,7 @@ router.get('/status/:botSessionId', auth, async (req, res) => {
     }
 });
 
-// Process bot file
-router.post('/process-bot-file', auth, async (req, res) => {
-    console.log(req.body, "req.body for process bot file");
-    try {
-        const { 
-            bot_url,
-            s3_file_path,
-            transcribe_method = 'aws',
-            transcribe_lang = 'en-US',
-            transcribe_speaker_number = 2
-        } = req.body;
 
-        if (!bot_url || !s3_file_path) {
-            return res.status(400).json({ 
-                error: 'Bot URL and S3 file path are required' 
-            });
-        }
-
-        const response = await fetch('http://localhost:8000/process-bot-file/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                bot_url,
-                s3_file_path,
-                transcribe_method,
-                transcribe_lang,
-                transcribe_speaker_number
-            })
-        });
-
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.detail || 'Failed to process bot file');
-        }
-
-        const data = await response.json();
-
-        // Update transcript with processed data
-        if (req.body.transcriptId) {
-            await Transcript.findByIdAndUpdate(req.body.transcriptId, {
-                text: data.transcript,
-                questions: data.questions,
-                uploadStatus: 'READY_TO_USE'
-            });
-        }
-
-        res.json(data);
-    } catch (error) {
-        console.error('Error processing bot file:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
 
 module.exports = router;
   

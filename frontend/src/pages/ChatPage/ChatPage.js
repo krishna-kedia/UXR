@@ -72,7 +72,6 @@ function ChatPage() {
     };
 
     const handleStartNewChat = async (formData) => {
-        console.log(formData);
         try {
             setLoading(true);
             const response = await fetch('http://localhost:5001/api/chat/start', {
@@ -110,15 +109,16 @@ function ChatPage() {
             
             // Add user message immediately
             setMessages(prev => [...prev, { role: 'user', content: message }]);
+            const sessionId = activeSession.sessionId;
 
-            const response = await fetch('http://localhost:8000/chat/', {
+            const response = await fetch(`http://localhost:8000/chat/${sessionId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
                 body: JSON.stringify({
-                    session_id: activeSession.sessionId,
+                    session_id: sessionId,
                     question: message,
                     top_n: 3 // You might want to make this configurable
                 })

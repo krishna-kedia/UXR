@@ -52,7 +52,6 @@ function NewChatOverlay({ open, onClose, onStartChat, projectsData, loading }) {
                 transcriptName: selectedTranscriptData?.name
             };
 
-        console.log('Selected Form Data:', formData);
         onStartChat(formData);
     };
 

@@ -64,7 +64,6 @@ function IndividualProjectPage() {
                 t.origin === 'meeting_recording' && t.bot_session_id
             );
 
-            console.log('Meeting recordings:', meetingRecordings); // Debug log
             setTranscripts(formattedTranscripts);
 
         } catch (error) {
@@ -81,7 +80,6 @@ function IndividualProjectPage() {
     };
 
     const handleSaveQuestions = async (questionsToSave) => {
-        console.log(questionsToSave);
         try {
             const response = await fetch('http://localhost:5001/api/questions', {
                 method: 'POST',
@@ -186,7 +184,7 @@ function IndividualProjectPage() {
                 }
 
                 const { signedUrl } = await urlResponse.json();
-                console.log(`[Part ${partNumber}] Got signed URL, length: ${signedUrl.length}`);
+
 
                 const uploadResponse = await fetch(signedUrl, {
                     method: 'PUT',
@@ -208,14 +206,11 @@ function IndividualProjectPage() {
                 }
 
                 const rawETag = uploadResponse.headers.get('ETag');
-                console.log(`[Part ${partNumber}] Raw ETag from S3:`, rawETag);
+
                 
                 if (!rawETag) {
                     throw new Error(`No ETag received for part ${partNumber}`);
                 }
-
-                // Store the ETag exactly as received from S3, no modification needed
-                console.log(`[Part ${partNumber}] Using ETag:`, rawETag);
                 
                 return rawETag;  // Return with quotes intact
 
@@ -223,7 +218,6 @@ function IndividualProjectPage() {
                 console.error(`[Part ${partNumber}] Error:`, error);
                 if (attempt < MAX_RETRIES) {
                     const delayTime = RETRY_DELAY * attempt;
-                    console.log(`[Part ${partNumber}] Waiting ${delayTime}ms before retry`);
                     await wait(delayTime);
                     return uploadPartWithRetry(partNumber, chunk, attempt + 1);
                 }
@@ -386,9 +380,9 @@ function IndividualProjectPage() {
             return;
         }
 
-        // Second try-catch: Handle the processing
+        // Step 1: Transcribe the file
         try {
-            const processResponse = await fetch(`http://localhost:5001/api/transcripts/process-transcript/${transcriptId}`, {
+            const transcribeResponse = await fetch(`http://localhost:5001/api/transcripts/transcribe/${transcriptId}`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -396,17 +390,44 @@ function IndividualProjectPage() {
                 }
             });
 
-            if (!processResponse.ok) {
-                throw new Error(`Failed to process transcript: ${data.transcriptName}`);
+            if (!transcribeResponse.ok) {
+                throw new Error(`Failed to transcribe: ${data.transcriptName}`);
             }
 
-            showAlert(`${data.transcriptName} processing started`, 'success');
+            showAlert(`${data.transcriptName} transcription started`, 'success');
             setTimeout(() => {
                 fetchProjectDetails();
             }, 3000);
 
         } catch (error) {
-            showAlert(error.message, 'error');
+            showAlert(`Transcription failed: ${error.message}`, 'error');
+            setTimeout(() => {
+                fetchProjectDetails();
+            }, 3000);
+            return; // Exit early if transcription fails
+        }
+
+        // Step 2: Generate questions
+        try {
+            const questionsResponse = await fetch(`http://localhost:5001/api/transcripts/generate-transcript-questions/${transcriptId}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!questionsResponse.ok) {
+                throw new Error(`Failed to generate questions for: ${data.transcriptName}`);
+            }
+
+            showAlert(`${data.transcriptName} questions generated successfully`, 'success');
+            setTimeout(() => {
+                fetchProjectDetails();
+            }, 3000);
+
+        } catch (error) {
+            showAlert(`Question generation failed: ${error.message}`, 'error');
             setTimeout(() => {
                 fetchProjectDetails();
             }, 3000);
@@ -435,45 +456,6 @@ function IndividualProjectPage() {
         setDialogOpen(false);
         fetchProjectDetails();
     };
-
-    // useEffect(() => {
-    //     const pollBotStatuses = async () => {
-    //         const meetingRecordings = transcripts.filter(t => 
-    //             t.origin === 'meeting_recording' && t.bot_session_id
-    //         );
-
-    //         if (meetingRecordings.length === 0) return;
-
-    //         const botStatuses = await Promise.all(
-    //             meetingRecordings.map(async (transcript) => {
-    //                 try {
-    //                     const response = await fetch(`http://localhost:5001/api/bot/status/${transcript.bot_session_id}`, {
-    //                         headers: {
-    //                             'Authorization': `Bearer ${localStorage.getItem('token')}`
-    //                         }
-    //                     });
-                        
-    //                     if (!response.ok) return [transcript._id, null];
-                        
-    //                     const botData = await response.json();
-    //                     return [transcript._id, botData];
-    //                 } catch (error) {
-    //                     console.error('Error polling bot status:', error);
-    //                     return [transcript._id, null];
-    //                 }
-    //             })
-    //         );
-
-    //         setTranscripts(prev => prev.map(transcript => ({
-    //             ...transcript,
-    //             botStatus: botStatuses.find(([id]) => id === transcript._id)?.[1] || transcript.botStatus
-    //         })));
-    //     };
-
-    //     const pollInterval = setInterval(pollBotStatuses, 5000000);
-    //     return () => clearInterval(pollInterval);
-    // }, [transcripts]);
-
     const hasTranscripts = project.transcripts && project.transcripts.length > 0 && project.transcripts.some(transcript => transcript.uploadStatus === 'READY_TO_USE');
 
     return (
@@ -552,39 +534,6 @@ function IndividualProjectPage() {
                             />
                         </div>
                     </div>
-
-                    {
-                        showQuestionOverlay && (
-                            <HandleQuestionOverlay
-                                projectId={projectId}
-                                existingQuestions={questions}
-                                onSave={handleSaveQuestions}
-                                onClose={() => setShowQuestionOverlay(false)}
-                            />
-                        )
-                    }
-
-                    {showOverlay && (
-                        <CreateQuestionOverlay 
-                            onClose={() => setShowOverlay(false)} 
-                            projectId={projectId}
-                            onSave={handleSaveQuestions}
-                        />
-                    )}
-
-                    {questions.map((question, index) => (
-                        <QuestionBox 
-                            key={index} 
-                            question={question} 
-                            onChange={(newText) => handleQuestionChange(index, newText)} 
-                        />
-                    ))}
-
-                    {questions.length > 0 && (
-                        <button className="save-questions-btn" onClick={handleSaveQuestions}>
-                            Save Questions
-                        </button>
-                    )}
 
                     <UploadOptionsMenu
                         open={dialogOpen}

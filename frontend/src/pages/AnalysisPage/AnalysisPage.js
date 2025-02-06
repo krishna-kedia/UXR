@@ -24,15 +24,16 @@ function AnalysisPage() {
                 acc[index + 1] = q;
                 return acc;
             }, {});
+            const transcriptId = transcript._id;    
 
-            const response = await fetch('http://127.0.0.1:8000/get-all-answer-single-transcript-grid/', {
+            const response = await fetch(`http://localhost:8000/get-all-answer-single-transcript-grid/${transcriptId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     question: questionObject,
-                    transcript_id: transcript._id
+                    transcript_id: transcriptId
                 })
             });
 
@@ -92,7 +93,6 @@ function AnalysisPage() {
                 }
 
                 const projectData = await response.json();
-                console.log('Project Data:', projectData);
 
                 // Get questions array from project data
                 const questionsList = projectData.questions?.map(q => q.question) || [];

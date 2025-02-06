@@ -25,7 +25,6 @@ const response = async (userId, projectId, file) => {
         };
 
         const response = await s3Client.send(new PutObjectCommand(params));
-        console.log(response)
         
         return {
             s3Key,

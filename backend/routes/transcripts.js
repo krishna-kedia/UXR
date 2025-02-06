@@ -8,6 +8,7 @@ const auth = require('../middleware/auth');
 const {uploadToS3} = require('../utils/s3Operations')
 const s3Client = require('../utils/s3Config');
 const { ObjectId } = mongoose.Types;
+const {processTranscript, generateTranscriptQuestions} = require('../utils/processBotFile');
 
 const { 
     CreateMultipartUploadCommand, 
@@ -300,62 +301,78 @@ router.post('/abort-upload', auth, async (req, res) => {
     }
 });
 
-// Add this new endpoint
-router.post('/process-transcript/:transcriptId', auth, async (req, res) => {
+// Endpoint to transcribe the file
+router.post('/transcribe/:transcriptId', auth, async (req, res) => {
     try {
         const transcript = await Transcript.findById(req.params.transcriptId);
         if (!transcript) {
             return res.status(404).json({ error: 'Transcript not found' });
         }
 
-        // Update status to PROCESSING
-        transcript.uploadStatus = 'PROCESSING';
-        await transcript.save();
+        const { fileUrl, transcribeMethod, transcribeLang, transcribeSpeakerNumber } = req.body;
 
-        const processData = JSON.stringify({
-            url: transcript.s3Url,
-            transcribe_method: 'aws',
-            transcribe_lang: 'en-US'
-        });
-
-        const processFileResponse = await fetch('http://localhost:8000/process-file/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: processData
-        });
-
-        if (!processFileResponse.ok) {
-            const errorData = await processFileResponse.json();
-            transcript.uploadStatus = 'PROCESSING_FAILED';
+        try {
+            transcript.uploadStatus = 'TRANSCRIBING';
             await transcript.save();
-            
-            throw new Error(
-                JSON.stringify({
-                    message: 'Failed to process file',
-                    status: processFileResponse.status,
-                    statusText: processFileResponse.statusText,
-                    apiError: errorData.detail || errorData.error || 'Unknown processing error',
-                    transcriptId: transcript._id
-                })
-            );
+
+            const processedTranscript = await processTranscript({
+                fileUrl: fileUrl || transcript.s3Url,
+                transcriptId: transcript._id,
+                transcribeMethod: transcribeMethod || 'aws',
+                transcribeLang: transcribeLang || 'en-US',
+                transcribeSpeakerNumber: transcribeSpeakerNumber || 2
+            });
+
+            transcript.text = processedTranscript;
+            transcript.uploadStatus = 'PROCESSED';
+            await transcript.save();
+
+            res.json({
+                message: 'Transcript processed successfully',
+                transcriptId: transcript._id
+            });
+        } catch (error) {
+            transcript.uploadStatus = 'TRANSCRIBING_FAILED';
+            await transcript.save();
+            throw error;
+        }
+    } catch (error) {
+        console.error('Error in transcribe:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Endpoint to generate questions
+router.post('/generate-transcript-questions/:transcriptId', auth, async (req, res) => {
+    try {
+        const transcript = await Transcript.findById(req.params.transcriptId);
+        if (!transcript) {
+            return res.status(404).json({ error: 'Transcript not found' });
         }
 
-        const processFileData = await processFileResponse.json();
+        try {
+            transcript.uploadStatus = 'GENERATING_QUESTIONS';
+            await transcript.save();
 
-        // Update transcript with processed data
-        transcript.text = processFileData.transcript;
-        transcript.questions = processFileData.questions;
-        transcript.uploadStatus = 'READY_TO_USE';
-        await transcript.save();
+            const questions = await generateTranscriptQuestions(transcript._id);
+            console.log(questions, "questions generated");
 
-        res.json({
-            message: 'Transcript processed successfully',
-            transcriptId: transcript._id
-        });
+            transcript.questions = questions;
+            transcript.uploadStatus = 'READY_TO_USE';
+            await transcript.save();
+
+            res.json({
+                message: 'Questions generated successfully',
+                transcriptId: transcript._id
+            });
+        } catch (error) {
+            transcript.uploadStatus = 'QUESTION_GENERATION_FAILED';
+            await transcript.save();
+            throw error;
+        }
+
     } catch (error) {
-        console.error('Error in process-transcript:', error);
+        console.error('Error in generate-transcript-questions:', error);
         res.status(500).json({ error: error.message });
     }
 });

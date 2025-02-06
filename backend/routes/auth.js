@@ -10,7 +10,7 @@ router.post('/register', async (req, res) => {
   try {
     const { firstName, lastName, email, password } = req.body;
     
-    console.log('Received registration request:', { firstName, lastName, email }); // Log the request
+    
 
     // Check if user already exists
     let user = await User.findOne({ email });
@@ -30,7 +30,6 @@ router.post('/register', async (req, res) => {
     });
 
     await user.save();
-    console.log('User saved successfully:', user._id); // Log successful save
 
     // Create JWT token
     const token = jwt.sign(

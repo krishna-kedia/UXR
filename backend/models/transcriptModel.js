@@ -19,8 +19,7 @@ const transcriptSchema = new mongoose.Schema(
     s3Key: String,
     s3Url: String,
     uploadStatus: {
-      type: String,
-      enum: ['INITIATING', 'UPLOADING', 'PROCESSING', 'UPLOAD_COMPLETED', 'PROCESSING_FAILED', 'READY_TO_USE', 'SCHEDULED_TO_JOIN', 'MEETING_STARTED', 'MEETING_COMPLETED','BOT_FAILED']
+      type: String
     },
     uploadId: String,
     parts: [{

@@ -35,7 +35,6 @@ router.get('/:projectId', auth, async (req, res) => {
         if (!project) {
             return res.status(404).json({ error: 'Project not found' });
         }
-        console.log(project);
         res.json(project);
     } catch (error) {
         console.error('Error fetching project:', error);

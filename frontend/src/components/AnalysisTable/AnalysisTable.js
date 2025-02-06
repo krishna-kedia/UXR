@@ -10,7 +10,7 @@ const AnalysisTable = ({ questions, transcripts, answers, loadingColumns, errorC
         );
     }
 
-    console.log('Answers:', answers); // Debug log
+
 
     return (
         <div className="analysis-table">
