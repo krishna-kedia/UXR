@@ -174,9 +174,10 @@ router.post('/webhook/:webhookId', async (req, res) => {
                 }
 
                 try {
-                    const sessionId = botSession._id
+                    // const timestamp1 = new Date();
+                    const sessionId = botSession._id;
                     const sanitizedFileName = transcript1.transcriptName.replace(/\s+/g, '-');
-                    const s3FilePath = `upload-data/users/${user._id}/${project._id}/transcripts/${timestamp}-${sanitizedFileName}.mp4`;
+                    const s3FilePath = `upload-data/users/${user._id}/${project._id}/transcripts/${sanitizedFileName}.mp4`;
                     
                     // Step 1: Upload to S3
                     try {
