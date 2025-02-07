@@ -6,11 +6,13 @@ import {
     TableContainer, 
     TableHead, 
     TableRow, 
-    Paper 
+    Paper,
+    Tooltip 
 } from '@mui/material';
 import './AnalysisTable.css';
+import ChatIcon from '@mui/icons-material/Chat';
 
-const AnalysisTable = ({ questions, transcripts, answers, loadingColumns, errorColumns, onAnalyzeColumn }) => {
+const AnalysisTable = ({ questions, transcripts, answers, loadingColumns, errorColumns, onAnalyzeColumn, projectId }) => {
     if (!questions?.length || !transcripts?.length) {
         return (
             <div className="analysis-empty-state">
@@ -43,11 +45,44 @@ const AnalysisTable = ({ questions, transcripts, answers, loadingColumns, errorC
                     {questions.map((question, index) => (
                         <TableRow key={index} className="table-row">
                             <TableCell component="th" scope="row" className="question-cell">
-                                {question}
+                                <div className="cell-content">
+                                    {question}
+                                    <div className="chat-icon-wrapper">
+                                        <Tooltip title="Chat about this question across all transcripts">
+                                            <ChatIcon 
+                                                className="chat-icon"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    window.open(`/chat?project=${projectId}&question=${encodeURIComponent(question)}`, '_blank');
+                                                }}
+                                            />
+                                        </Tooltip>
+                                    </div>
+                                </div>
                             </TableCell>
                             {transcripts.map((transcript) => (
                                 <TableCell key={transcript._id} className="answer-cell">
-                                    {answers[transcript._id]?.[index + 1] || ''}
+                                    <div className="cell-content">
+                                        {answers[transcript._id]?.[index + 1] && (
+                                            <>
+                                                {answers[transcript._id]?.[index + 1]}
+                                                <div className="chat-icon-wrapper">
+                                                    <Tooltip title="Chat about this specific answer">
+                                                        <ChatIcon 
+                                                            className="chat-icon"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                window.open(
+                                                                    `/chat?project=${projectId}&transcript=${transcript._id}&question=${encodeURIComponent(question)}`,
+                                                                    '_blank'
+                                                                );
+                                                            }}
+                                                        />
+                                                    </Tooltip>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
                                 </TableCell>
                             ))}
                         </TableRow>
