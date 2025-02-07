@@ -50,12 +50,12 @@ router.post('/start', auth, async (req, res) => {
         // Validate project exists
 
         // Check if user has reached session limit
-        const user = await User.findById(req.user.id);
-        if (user.chatSessions.length >= 10) {
-            return res.status(400).json({ 
-                message: 'Maximum chat session limit reached. Please delete some existing sessions.' 
-            });
-        }
+        // const user = await User.findById(req.user.id);
+        // if (user.chatSessions.length >= 10) {
+        //     return res.status(400).json({ 
+        //         message: 'Maximum chat session limit reached. Please delete some existing sessions.' 
+        //     });
+        // }
 
         // Create new chat session
         const chatSession = new ChatSession({
@@ -95,8 +95,8 @@ router.get('/sessions', auth, async (req, res) => {
         const user = await User.findById(req.user.id)
             .populate({
                 path: 'chatSessions',
-                select: 'chatName project_id transcript_id chat_type createdAt',
-                options: { sort: { 'createdAt': -1 } } // Sort by creation date descending
+                select: 'chatName project_id transcript_id chat_type createdAt conversation',
+                options: { sort: { 'createdAt': -1 } } // Sort by creation date descending  
             });
 
         if (!user) {
@@ -109,7 +109,8 @@ router.get('/sessions', auth, async (req, res) => {
             chatName: session.chatName,
             projectId: session.project_id,
             transcriptId: session.transcript_id,
-            type: session.chat_type
+            type: session.chat_type,
+            conversation: session.conversation
         }));
 
         res.json({ sessions: formattedSessions });

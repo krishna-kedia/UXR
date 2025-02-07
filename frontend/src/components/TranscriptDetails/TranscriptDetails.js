@@ -65,12 +65,9 @@ const TranscriptDetails = ({
 }) => {
     const [uploadStatus, setUploadStatus] = useState(initialUploadStatus);  // Add state
 
-    const handleReprocess = async () => {
-        // Step 1: Transcribe
-        setUploadStatus('PROCESSING');
+    const handleTranscribe = async (transcriptId) => {
+        setUploadStatus('TRANSCRIBING');
         
-        console.log({_id}, "transcript id");
-        const transcriptId = {_id}._id
         try {
             const transcribeResponse = await fetch(`http://localhost:5001/api/transcripts/transcribe/${transcriptId}`, {
                 method: 'POST',
@@ -85,36 +82,55 @@ const TranscriptDetails = ({
                     transcribeSpeakerNumber: 2
                 })
             });
+            
             if (!transcribeResponse.ok) {
-                setUploadStatus('PROCESSING_FAILED');
+                setUploadStatus('TRANSCRIBING_FAILED');
                 throw new Error('Transcription failed');
             }
+            
             setUploadStatus('PROCESSED');
+            return true;
         } catch (error) {
             console.error('Failed to transcribe:', error);
-            setUploadStatus('PROCESSING_FAILED');
-            return;
+            setUploadStatus('TRANSCRIBING_FAILED');
+            return false;
         }
+    };
 
-        // Step 2: Generate Questions
+    const handleQuestionGeneration = async (transcriptId) => {
         try {
             setUploadStatus('GENERATING_QUESTIONS');
-            const questionsResponse = await fetch(`http://localhost:5001/api/transcripts/generate-transcript-questions/${_id}`, {
+            const questionsResponse = await fetch(`http://localhost:5001/api/transcripts/generate-transcript-questions/${transcriptId}`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
                     'Content-Type': 'application/json'
                 }
             });
+            
             if (!questionsResponse.ok) {
                 setUploadStatus('QUESTION_GENERATION_FAILED');
                 throw new Error('Question generation failed');
             }
+            
             setUploadStatus('READY_TO_USE');
+            return true;
         } catch (error) {
             console.error('Failed to generate questions:', error);
             setUploadStatus('QUESTION_GENERATION_FAILED');
+            return false;
         }
+    };
+
+    const handleReprocess = async () => {
+        const transcriptId = _id;
+        
+        // Step 1: Transcribe
+        const transcribeSuccess = await handleTranscribe(transcriptId);
+        if (!transcribeSuccess) return;
+
+        // Step 2: Generate Questions
+        await handleQuestionGeneration(transcriptId);
     };
 
     const getOriginIcon = (origin) => {
@@ -126,33 +142,30 @@ const TranscriptDetails = ({
     };
 
     const getStatusColor = (status) => {
-        switch (status) {
-            case 'joining_call': return 'status-joining';
-            case 'in_waiting_room': return 'status-waiting';
-            case 'in_call_not_recording': return 'status-not-recording';
-            case 'in_call_recording': return 'status-recording';
-            case 'call_ended': return 'status-ended';
-            case 'error': return 'status-error';
-            case 'INITIATING': return 'status-initiating';
-            case 'UPLOADING': return 'status-uploading';
-            case 'UPLOAD_COMPLETED': return 'status-upload-completed';
-            case 'PROCESSING': return 'status-processing';
-            case 'PROCESSING_FAILED': return 'status-failed';
-            case 'READY_TO_USE': return 'status-ready';
-            default: return 'status-default';
+        // Convert status to lowercase for easier comparison
+        const statusLower = status?.toLowerCase() || '';
+        
+        // If status contains 'failed', return the failed class
+        if (statusLower.includes('failed')) {
+            return 'status-failed';
         }
+        // If status is ready_to_use, return the ready class
+        if (status === 'READY_TO_USE') {
+            return 'status-ready';
+        }
+        // For all other statuses, return the default class
+        return 'status-default';
     };
 
     const getStatusText = (status) => {
-        switch (status) {
-            case 'INITIATING': return 'Initiating Upload';
-            case 'UPLOADING': return 'Uploading';
-            case 'UPLOAD_COMPLETED': return 'Upload Complete';
-            case 'PROCESSING': return 'Processing';
-            case 'PROCESSING_FAILED': return 'Processing Failed';
-            case 'READY_TO_USE': return 'Ready';
-            default: return status?.replace(/_/g, ' ');
-        }
+        if (!status) return '';
+        
+        // First word should be capitalized, rest lowercase
+        const words = status.split('_');
+        return words[0].charAt(0).toUpperCase() + 
+               words[0].slice(1).toLowerCase() + 
+               ' ' + 
+               words.slice(1).join(' ').toLowerCase();
     };
 
     return (
@@ -172,7 +185,7 @@ const TranscriptDetails = ({
                 </div>
 
                 <div className="status-row">
-                    <Person className="user-icon" />
+                    {getOriginIcon(origin)}
                     <span className={`status-tag ${getStatusColor(uploadStatus)}`}>
                         {getStatusText(uploadStatus)}
                     </span>
@@ -212,12 +225,21 @@ const TranscriptDetails = ({
                     </div>
                 )}
 
-                {uploadStatus === 'PROCESSING_FAILED' && (
+                {uploadStatus === 'TRANSCRIBING_FAILED' && (
                     <button 
                         className="process-again-btn"
                         onClick={handleReprocess}
                     >
                         Process again
+                    </button>
+                )}
+
+                {uploadStatus === 'QUESTION_GENERATION_FAILED' && (
+                    <button 
+                        className="process-again-btn"
+                        onClick={() => handleQuestionGeneration(_id)}
+                    >
+                        Generate questions
                     </button>
                 )}
             </div>

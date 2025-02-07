@@ -47,10 +47,10 @@ function ChatDialogueBox({ messages, onSendMessage, loading, session }) {
                 {messages.map((message, index) => (
                     <div 
                         key={index} 
-                        className={`message ${message.role === 'user' ? 'user-message' : 'ai-message'}`}
+                        className={`message ${message.role === 'user' ? 'user-message' : 'assistant-message'}`}
                     >
                         <div className="message-content">
-                            {message.content}
+                            {message.message}
                         </div>
                     </div>
                 ))}

@@ -12,17 +12,11 @@ function ChatSidebar({ sessions, activeSession, onNewChat, onSessionSelect }) {
             </div>
 
             <div className="sessions-list">
-                {sessions.map(session => (
-                    <div 
+                {sessions.map((session) => (
+                    <div
                         key={session.sessionId}
                         className={`session-item ${activeSession?.sessionId === session.sessionId ? 'active' : ''}`}
-                        onClick={() => onSessionSelect({
-                            sessionId: session.sessionId,
-                            chatName: session.chatName,
-                            type: session.type,
-                            projectId: session.projectId,
-                            transcriptId: session.transcriptId
-                        })}
+                        onClick={() => onSessionSelect(session)}
                     >
                         <div className="session-name">{session.chatName}</div>
                         <div className="session-type">{session.type}</div>

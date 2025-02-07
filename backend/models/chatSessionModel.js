@@ -31,6 +31,10 @@ const chatSessionSchema = new mongoose.Schema({
     num_interactions: {
         type: Number,
         default: 0
+    },
+    conversation: {
+        type: Array,
+        default: []
     }
 }, { timestamps: true });
 

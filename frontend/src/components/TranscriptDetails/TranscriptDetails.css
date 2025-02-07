@@ -121,21 +121,19 @@
     white-space: nowrap;
 }
 
-.status-tag.processing {
-    background-color: #FEF9C3;
-    color: #854D0E;
-}
-
-.status-tag.processing-failed {
+.status-tag[class*="failed"] {
     background-color: #FEE2E2;
     color: #991B1B;
 }
 
-.status-tag.completed {
-    background-color: #22C55E;
-    color: white;
-    text-transform: uppercase;
-    font-size: 12px;
+.status-tag[class*="ready"] {
+    background-color: #D1FAE5;
+    color: #065F46;
+}
+
+.status-tag:not([class*="failed"]):not([class*="ready"]) {
+    background-color: #FEF3C7;
+    color: #92400E;
 }
 
 .metadata-grid {
@@ -258,14 +256,6 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     width: 10vw;
 }
-
-.status-joining { background-color: #EAB308; }
-.status-waiting { background-color: #3B82F6; }
-.status-not-recording { background-color: #F97316; }
-.status-recording { background-color: #22C55E; }
-.status-ended { background-color: #B91C1C; }
-.status-error { background-color: #991B1B; }
-.status-default { background-color: #6B7280; }
 
 .bg-yellow-500 { background-color: #EAB308; }
 .bg-blue-500 { background-color: #3B82F6; }

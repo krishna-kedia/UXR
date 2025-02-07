@@ -8,10 +8,17 @@ const User = require('../models/userModel');
 // FetchAllProjects: Get all projects for authenticated user
 router.get('/', auth, async (req, res) => {
     try {
-        const projects = await Project.find({ createdBy: req.user._id })
-            .sort({ createdAt: -1 }); // Sort by newest first
+        const user = await User.findById(req.user._id)
+            .populate({
+                path: 'projects',
+                options: { sort: { createdAt: -1 } } // Sort by newest first
+            });
 
-        res.json(projects);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.json(user.projects);
     } catch (error) {
         console.error('Error in FetchAllProjects:', error);
         res.status(500).json({ error: error.message });

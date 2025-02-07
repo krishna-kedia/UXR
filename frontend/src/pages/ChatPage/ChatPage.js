@@ -92,6 +92,7 @@ function ChatPage() {
             setSessions(prevSessions => [...prevSessions, newSession]);
             setActiveSession(newSession);
             setShowNewChatOverlay(false);
+            window.location.reload();
         } catch (error) {
             setError(error.message);
             console.error('Error starting chat:', error);
@@ -108,7 +109,9 @@ function ChatPage() {
             setError(null);
             
             // Add user message immediately
-            setMessages(prev => [...prev, { role: 'user', content: message }]);
+            const newUserMessage = { role: 'user', message: message };
+            setMessages(prev => [...prev, newUserMessage]);
+            
             const sessionId = activeSession.sessionId;
 
             const response = await fetch(`http://localhost:8000/chat/${sessionId}`, {
@@ -120,7 +123,7 @@ function ChatPage() {
                 body: JSON.stringify({
                     session_id: sessionId,
                     question: message,
-                    top_n: 3 // You might want to make this configurable
+                    top_n: 3
                 })
             });
 
@@ -133,7 +136,8 @@ function ChatPage() {
             const decoder = new TextDecoder();
             let accumulatedResponse = '';
 
-            setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
+            // Add empty assistant message
+            setMessages(prev => [...prev, { role: 'assistant', message: '' }]);
 
             while (true) {
                 const { done, value } = await reader.read();
@@ -147,19 +151,34 @@ function ChatPage() {
                     const newMessages = [...prev];
                     newMessages[newMessages.length - 1] = {
                         role: 'assistant',
-                        content: accumulatedResponse
+                        message: accumulatedResponse
                     };
                     return newMessages;
                 });
             }
 
-            setCurrentResponse(''); // Clear current response after completion
+            // Update the sessions state with the new conversation
+            setSessions(prevSessions => {
+                return prevSessions.map(s => {
+                    if (s.sessionId === activeSession.sessionId) {
+                        return {
+                            ...s,
+                            conversation: [...(s.conversation || []), 
+                                newUserMessage, 
+                                { role: 'assistant', message: accumulatedResponse }
+                            ]
+                        };
+                    }
+                    return s;
+                });
+            });
+
+            setCurrentResponse('');
 
         } catch (error) {
             console.error('Chat error:', error);
             setError('Failed to send message. Please try again.');
-            // Remove the last assistant message if it failed
-            setMessages(prev => prev.filter(msg => msg.content !== ''));
+            setMessages(prev => prev.filter(msg => msg.message !== ''));
         } finally {
             setLoading(false);
         }
@@ -167,7 +186,7 @@ function ChatPage() {
 
     const handleSessionSelect = (session) => {
         setActiveSession(session);
-        setMessages([]); // Clear messages when switching sessions
+        setMessages(session.conversation || []); // Set the conversation history
         setError(null);
     };
 

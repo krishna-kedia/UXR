@@ -165,8 +165,9 @@ const CreateQuestionOverlay = ({ projectId, onSave, questionsCreatedDateTime, ex
                             className="generate-again-button"
                             onClick={handleGenerateQuestions}
                             fullWidth
+                            disabled={!hasTranscripts}
                         >
-                            Create questions again
+                            Create questions
                         </Button>
                     {!hasTranscripts && (
                         <Typography className="helper-text">
