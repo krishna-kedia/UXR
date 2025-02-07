@@ -12,7 +12,8 @@ import {
     FormControl,
     InputLabel,
     Snackbar,
-    Alert
+    Alert,
+    Grid
 } from '@mui/material';
 import './UploadOptionsMenu.css';
 
@@ -136,6 +137,26 @@ function UploadOptionsMenu({ open, onClose, onSubmit, error }) {
             <DialogContent>
                 {selectedOption === 'upload' ? (
                     <div className="form-container">
+                        <Button
+                            variant="outlined"
+                            component="label"
+                            fullWidth
+                            sx={{ mb: 3 }}
+                        >
+                            Choose File
+                            <input
+                                type="file"
+                                hidden
+                                onChange={(e) => setFile(e.target.files[0])}
+                                accept=".pdf,.doc,.docx,.mp3,.mp4,.wav,.txt"
+                            />
+                        </Button>
+                        {file && (
+                            <div className="selected-file" style={{ marginBottom: '20px' }}>
+                                Selected: {file.name}
+                            </div>
+                        )}
+
                         <TextField
                             label="Transcript Name"
                             value={transcriptName}
@@ -143,48 +164,51 @@ function UploadOptionsMenu({ open, onClose, onSubmit, error }) {
                             required
                             fullWidth
                             margin="normal"
+                            sx={{ mb: 3 }}
                         />
-                        <TextField
-                            label="Number of People"
-                            type="number"
-                            value={noOfPeople}
-                            onChange={(e) => setNoOfPeople(e.target.value)}
-                            fullWidth
-                            margin="normal"
-                        />
-                        <TextField
-                            label="Interviewer Name"
-                            value={interviewerName}
-                            onChange={(e) => setInterviewerName(e.target.value)}
-                            fullWidth
-                            margin="normal"
-                        />
-                        <TextField
-                            label="Interviewee Name(s)"
-                            value={intervieweeName}
-                            onChange={(e) => setIntervieweeName(e.target.value)}
-                            fullWidth
-                            margin="normal"
-                        />
-                        <FormControl fullWidth margin="normal">
-                            <InputLabel>Language</InputLabel>
-                            <Select
-                                value={language}
-                                onChange={(e) => setLanguage(e.target.value)}
-                                required
-                            >
-                                <MenuItem value="Hindi">Hindi</MenuItem>
-                                <MenuItem value="English">English</MenuItem>
-                                <MenuItem value="Hinglish">Hinglish</MenuItem>
-                                <MenuItem value="Other">Other</MenuItem>
-                            </Select>
-                        </FormControl>
-                        <input
-                            type="file"
-                            onChange={(e) => setFile(e.target.files[0])}
-                            accept=".pdf,.doc,.docx,.mp3,.mp4,.wav,.txt"
-                            className="file-input"
-                        />
+
+                        <Grid container spacing={2}>
+                            <Grid item xs={6}>
+                                <TextField
+                                    label="Number of People"
+                                    type="number"
+                                    value={noOfPeople}
+                                    onChange={(e) => setNoOfPeople(e.target.value)}
+                                    fullWidth
+                                />
+                            </Grid>
+                            <Grid item xs={6}>
+                                <TextField
+                                    label="Interviewer Name"
+                                    value={interviewerName}
+                                    onChange={(e) => setInterviewerName(e.target.value)}
+                                    fullWidth
+                                />
+                            </Grid>
+                            <Grid item xs={6}>
+                                <TextField
+                                    label="Interviewee Name(s)"
+                                    value={intervieweeName}
+                                    onChange={(e) => setIntervieweeName(e.target.value)}
+                                    fullWidth
+                                />
+                            </Grid>
+                            <Grid item xs={6}>
+                                <FormControl fullWidth>
+                                    <InputLabel>Language</InputLabel>
+                                    <Select
+                                        value={language}
+                                        onChange={(e) => setLanguage(e.target.value)}
+                                        label="Language"
+                                    >
+                                        <MenuItem value="Hindi">Hindi</MenuItem>
+                                        <MenuItem value="English">English</MenuItem>
+                                        <MenuItem value="Hinglish">Hinglish</MenuItem>
+                                        <MenuItem value="Other">Other</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+                        </Grid>
                     </div>
                 ) : (
                     <div className="form-container">

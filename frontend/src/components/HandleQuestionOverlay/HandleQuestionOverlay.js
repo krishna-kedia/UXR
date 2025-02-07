@@ -32,6 +32,7 @@ const HandleQuestionOverlay = ({ existingQuestions, onSave, onClose }) => {
             } catch (error) {
                 console.error('Error generating questions:', error);
             } finally {
+                await new Promise(resolve => setTimeout(resolve, 10000));
                 setLoading(false);
             }
         };

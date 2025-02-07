@@ -10,7 +10,7 @@
 .baton {
     display: block;
     height: 2px;
-    width: 70px;
+    width: 90px;
     background-color: #459fa5;
     animation: scale 1.25s infinite linear;
     transform-origin: 0;
@@ -64,4 +64,36 @@
 .baton-0 { transform: rotate(0deg); animation-delay: 0s; }
 .baton-1 { transform: rotate(10deg); animation-delay: -0.14s; }
 .baton-2 { transform: rotate(20deg); animation-delay: -0.28s; }
-/* Continue this pattern for each baton */
+.baton-3 { transform: rotate(30deg); animation-delay: -0.42s; }
+.baton-4 { transform: rotate(40deg); animation-delay: -0.56s; }
+.baton-5 { transform: rotate(50deg); animation-delay: -0.70s; }
+.baton-6 { transform: rotate(60deg); animation-delay: -0.84s; }
+.baton-7 { transform: rotate(70deg); animation-delay: -0.98s; }
+.baton-8 { transform: rotate(80deg); animation-delay: -1.12s; }
+.baton-9 { transform: rotate(90deg); animation-delay: -1.26s; }
+.baton-10 { transform: rotate(100deg); animation-delay: -1.40s; }
+.baton-11 { transform: rotate(110deg); animation-delay: -1.54s; }
+.baton-12 { transform: rotate(120deg); animation-delay: -1.68s; }
+.baton-13 { transform: rotate(130deg); animation-delay: -1.82s; }
+.baton-14 { transform: rotate(140deg); animation-delay: -1.96s; }
+.baton-15 { transform: rotate(150deg); animation-delay: -2.10s; }
+.baton-16 { transform: rotate(160deg); animation-delay: -2.24s; }
+.baton-17 { transform: rotate(170deg); animation-delay: -2.38s; }
+.baton-18 { transform: rotate(180deg); animation-delay: -2.52s; }
+.baton-19 { transform: rotate(190deg); animation-delay: -2.66s; }
+.baton-20 { transform: rotate(200deg); animation-delay: -2.80s; }
+.baton-21 { transform: rotate(210deg); animation-delay: -2.94s; }
+.baton-22 { transform: rotate(220deg); animation-delay: -3.08s; }
+.baton-23 { transform: rotate(230deg); animation-delay: -3.22s; }
+.baton-24 { transform: rotate(240deg); animation-delay: -3.36s; }
+.baton-25 { transform: rotate(250deg); animation-delay: -3.50s; }
+.baton-26 { transform: rotate(260deg); animation-delay: -3.64s; }
+.baton-27 { transform: rotate(270deg); animation-delay: -3.78s; }
+.baton-28 { transform: rotate(280deg); animation-delay: -3.92s; }
+.baton-29 { transform: rotate(290deg); animation-delay: -4.06s; }
+.baton-30 { transform: rotate(300deg); animation-delay: -4.20s; }
+.baton-31 { transform: rotate(310deg); animation-delay: -4.34s; }
+.baton-32 { transform: rotate(320deg); animation-delay: -4.48s; }
+.baton-33 { transform: rotate(330deg); animation-delay: -4.62s; }
+.baton-34 { transform: rotate(340deg); animation-delay: -4.76s; }
+.baton-35 { transform: rotate(350deg); animation-delay: -4.90s; }

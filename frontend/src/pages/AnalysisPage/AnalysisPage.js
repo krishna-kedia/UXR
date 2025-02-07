@@ -2,6 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import AnalysisTable from '../../components/AnalysisTable/AnalysisTable';
 import './AnalysisPage.css';
+import Loader from '../../components/Loader/Loader';
+import { Button } from '@mui/material';
+import { 
+    Table, 
+    TableBody, 
+    TableCell, 
+    TableContainer, 
+    TableHead, 
+    TableRow, 
+    Paper 
+} from '@mui/material';
 
 function AnalysisPage() {
     const [questions, setQuestions] = useState([]);
@@ -124,20 +135,30 @@ function AnalysisPage() {
         }
     }, [projectId]);
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return (
+        <div className="loader-container">
+            <Loader />
+        </div>
+    );
     if (error) return <div>Error: {error}</div>;
 
     return (
         <div className="analysis-page">
             <div className="analysis-header">
                 <h1>Analysis</h1>
-                <button 
-                    className="analyze-all-btn"
+                <Button 
+                    variant="contained"
+                    color="primary"
                     onClick={handleAnalyzeAll}
                     disabled={isAnalyzing}
+                    sx={{
+                        textTransform: 'none',
+                        minWidth: '120px',
+                        fontWeight: 500
+                    }}
                 >
-                    {isAnalyzing ? 'Analyzing...' : 'Analyse data again'}
-                </button>
+                    {isAnalyzing ? 'Analyzing...' : 'Analyse data'}
+                </Button>
             </div>
             <AnalysisTable 
                 questions={questions} 

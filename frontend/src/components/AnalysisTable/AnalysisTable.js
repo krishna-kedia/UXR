@@ -1,4 +1,13 @@
 import React from 'react';
+import { 
+    Table, 
+    TableBody, 
+    TableCell, 
+    TableContainer, 
+    TableHead, 
+    TableRow, 
+    Paper 
+} from '@mui/material';
 import './AnalysisTable.css';
 
 const AnalysisTable = ({ questions, transcripts, answers, loadingColumns, errorColumns, onAnalyzeColumn }) => {
@@ -10,40 +19,42 @@ const AnalysisTable = ({ questions, transcripts, answers, loadingColumns, errorC
         );
     }
 
-
-
     return (
-        <div className="analysis-table">
-            <table>
-                <thead>
-                    <tr>
-                        <th className="question-column">Questions</th>
+        <TableContainer component={Paper} className="analysis-table-container">
+            <Table stickyHeader>
+                <TableHead>
+                    <TableRow>
+                        <TableCell className="header-cell questions-header">
+                            Questions
+                        </TableCell>
                         {transcripts.map((transcript) => (
-                            <th key={transcript._id} className="transcript-column">
+                            <TableCell key={transcript._id} className="header-cell">
                                 <div className="transcript-header">
                                     <span>{transcript.transcriptName}</span>
                                     {loadingColumns[transcript._id] && (
                                         <span className="analyzing-text">Analyzing...</span>
                                     )}
                                 </div>
-                            </th>
+                            </TableCell>
                         ))}
-                    </tr>
-                </thead>
-                <tbody>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
                     {questions.map((question, index) => (
-                        <tr key={index}>
-                            <td className="question-cell">{question}</td>
+                        <TableRow key={index} className="table-row">
+                            <TableCell component="th" scope="row" className="question-cell">
+                                {question}
+                            </TableCell>
                             {transcripts.map((transcript) => (
-                                <td key={transcript._id} className="answer-cell">
+                                <TableCell key={transcript._id} className="answer-cell">
                                     {answers[transcript._id]?.[index + 1] || ''}
-                                </td>
+                                </TableCell>
                             ))}
-                        </tr>
+                        </TableRow>
                     ))}
-                </tbody>
-            </table>
-        </div>
+                </TableBody>
+            </Table>
+        </TableContainer>
     );
 };
 
