@@ -69,7 +69,7 @@ const TranscriptDetails = ({
         setUploadStatus('TRANSCRIBING');
         
         try {
-            const transcribeResponse = await fetch(`http://localhost:5001/api/transcripts/transcribe/${transcriptId}`, {
+            const transcribeResponse = await fetch(`/api/transcripts/transcribe/${transcriptId}`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,

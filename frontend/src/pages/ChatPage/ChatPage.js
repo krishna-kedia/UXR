@@ -71,7 +71,7 @@ function ChatPage() {
 
     const fetchProjectsData = async () => {
         try {
-            const response = await fetch('http://localhost:5001/api/chat/data', {
+            const response = await fetch('/api/chat/data', {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
@@ -87,7 +87,7 @@ function ChatPage() {
 
     const fetchChatSessions = async () => {
         try {
-            const response = await fetch('http://localhost:5001/api/chat/sessions', {
+            const response = await fetch('/api/chat/sessions', {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
@@ -108,7 +108,7 @@ function ChatPage() {
     const handleStartNewChat = async (formData) => {
         try {
             setLoading(true);
-            const response = await fetch('http://localhost:5001/api/chat/start', {
+            const response = await fetch('/api/chat/start', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -148,7 +148,7 @@ function ChatPage() {
             
             const sessionId = activeSession.sessionId;
 
-            const response = await fetch(`http://localhost:8000/chat/${sessionId}`, {
+            const response = await fetch(`/fastapi/chat/${sessionId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

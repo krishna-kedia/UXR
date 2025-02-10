@@ -93,7 +93,7 @@ spk_0: You too bye bye, bye, thanks.`
 
 async function uploadToS3({ botUrl, s3FilePath, sessionId }) {
     try {
-        const uploadResponse = await fetch(`${PYTHON_API_ROOT}/upload-s3file-to-s3bucket/${sessionId}`, {
+        const uploadResponse = await fetch(`/fastapi/upload-s3file-to-s3bucket/${sessionId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -143,7 +143,7 @@ async function processTranscript({
             }));
         }
 
-        // const response = await fetch(`${PYTHON_API_ROOT}/transcribe-file/${transcriptId}`, {
+        // const response = await fetch(`/fastapi/transcribe-file/${transcriptId}`, {
         //     method: 'POST',
         //     headers: {
         //         'Content-Type': 'application/json'
@@ -186,7 +186,7 @@ async function generateTranscriptQuestions(transcriptId) {
             }));
         }
 
-        const response = await fetch(`${PYTHON_API_ROOT}/generate-transcript-questions/${transcriptId}`, {
+        const response = await fetch(`/fastapi/generate-transcript-questions/${transcriptId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

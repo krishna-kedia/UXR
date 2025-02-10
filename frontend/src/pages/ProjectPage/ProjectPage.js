@@ -19,7 +19,7 @@ function ProjectPage() {
 
     const fetchProjects = async () => {
         try {
-            const response = await fetch('http://localhost:5001/api/projects', {
+            const response = await fetch('/api/projects', {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
@@ -42,7 +42,7 @@ function ProjectPage() {
         try {
             const user = JSON.parse(localStorage.getItem('user'));
             const userId = user.id;
-            const response = await fetch('http://localhost:5001/api/projects', {
+            const response = await fetch('/api/projects', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

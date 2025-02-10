@@ -32,7 +32,7 @@ function IndividualProjectPage() {
     const fetchProjectDetails = async () => {
         try {
             setIsLoading(true);
-            const response = await fetch(`http://localhost:5001/api/projects/${projectId}`, {
+            const response = await fetch(`/api/projects/${projectId}`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
@@ -81,7 +81,7 @@ function IndividualProjectPage() {
 
     const handleSaveQuestions = async (questionsToSave) => {
         try {
-            const response = await fetch('http://localhost:5001/api/questions', {
+            const response = await fetch('/api/questions', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -169,7 +169,7 @@ function IndividualProjectPage() {
                 });
                 
                 const urlResponse = await fetch(
-                    `http://localhost:5001/api/transcripts/upload-part-url?uploadId=${uploadId}&partNumber=${partNumber}&s3Key=${s3Key}`,
+                    `/api/transcripts/upload-part-url?uploadId=${uploadId}&partNumber=${partNumber}&s3Key=${s3Key}`,
                     {
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -232,7 +232,7 @@ function IndividualProjectPage() {
                     throw new Error('Invalid ETags detected in parts');
                 }
 
-                const completeResponse = await fetch('http://localhost:5001/api/transcripts/complete-upload', {
+                const completeResponse = await fetch('/api/transcripts/complete-upload', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -265,7 +265,7 @@ function IndividualProjectPage() {
         // First try-catch: Handle the upload process
         try {
             setIsLoading(true);
-            const initiateResponse = await fetch('http://localhost:5001/api/transcripts/initiate-upload', {
+            const initiateResponse = await fetch('/api/transcripts/initiate-upload', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -344,7 +344,7 @@ function IndividualProjectPage() {
         } catch (error) {
             if (uploadId || s3Key || transcriptId) {
                 try {
-                    await fetch('http://localhost:5001/api/transcripts/abort-upload', {
+                    await fetch('/api/transcripts/abort-upload', {
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -382,7 +382,7 @@ function IndividualProjectPage() {
 
         // Step 1: Transcribe the file
         try {
-            const transcribeResponse = await fetch(`http://localhost:5001/api/transcripts/transcribe/${transcriptId}`, {
+            const transcribeResponse = await fetch(`/api/transcripts/transcribe/${transcriptId}`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -409,7 +409,7 @@ function IndividualProjectPage() {
 
         // Step 2: Generate questions
         try {
-            const questionsResponse = await fetch(`http://localhost:5001/api/transcripts/generate-transcript-questions/${transcriptId}`, {
+            const questionsResponse = await fetch(`/api/transcripts/generate-transcript-questions/${transcriptId}`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -435,7 +435,7 @@ function IndividualProjectPage() {
     };
 
     const handleBotInvite = async (data) => {
-        const response = await fetch('http://localhost:5001/api/bot/create', {
+        const response = await fetch('/api/bot/create', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
