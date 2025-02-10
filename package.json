@@ -4,11 +4,12 @@
   "description": "UXR Platform for transcript analysis and insights",
   "main": "index.js",
   "scripts": {
-    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "start": "concurrently \"npm run server\" \"npm run client\" \"npm run api\"",
     "server": "cd backend && npm start",
     "client": "cd frontend && npm start",
+    "api": "conda run -n uxr_api && cd py_api && uvicorn api:app --host 0.0.0.0 --port 8000 --reload",
     "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install",
-    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "dev": "concurrently \"npm run server\" \"npm run client\" \"npm run api\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
