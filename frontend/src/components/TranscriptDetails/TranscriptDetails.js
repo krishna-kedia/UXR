@@ -170,9 +170,9 @@ const TranscriptDetails = ({
 
     return (
         <div className="transcript-card">
-            <div className="transcript-image">
+            {/* <div className="transcript-image">
                 <img src={imageUrl} alt={transcriptName} />
-            </div>
+            </div> */}
             
             <div className="transcript-content">
                 <div className="transcript-details-header">

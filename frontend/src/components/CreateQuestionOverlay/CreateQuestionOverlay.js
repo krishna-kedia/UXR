@@ -122,16 +122,16 @@ const CreateQuestionOverlay = ({ projectId, onSave, questionsCreatedDateTime, ex
                             variant="outlined"
                             className="generate-button"
                             onClick={() => setShowQuestionOverlay(true)}
-                            disabled={
-                                project?.transcripts?.length === project?.noOfTranscriptsWhenQuestionsCreated ||
-                                !project?.transcripts?.every(transcript => transcript.uploadStatus === "READY_TO_USE")
-                            }
-                            title={project?.transcripts?.length === project?.noOfTranscriptsWhenQuestionsCreated ? 
-                                "AI will only generate the next set of questions when you add another data source. Till then, you'll have to manually edit the questions :)" : 
-                                !project?.transcripts?.every(transcript => transcript.uploadStatus === "READY_TO_USE") ?
-                                "Please wait for all transcripts to finish processing before generating questions" :
-                                ""
-                            }
+                            // disabled={
+                            //     project?.transcripts?.length === project?.noOfTranscriptsWhenQuestionsCreated ||
+                            //     !project?.transcripts?.every(transcript => transcript.uploadStatus === "READY_TO_USE")
+                            // }
+                            // title={project?.transcripts?.length === project?.noOfTranscriptsWhenQuestionsCreated ? 
+                            //     "AI will only generate the next set of questions when you add another data source. Till then, you'll have to manually edit the questions :)" : 
+                            //     !project?.transcripts?.every(transcript => transcript.uploadStatus === "READY_TO_USE") ?
+                            //     "Please wait for all transcripts to finish processing before generating questions" :
+                            //     ""
+                            // }
                             fullWidth
                         >
                             Create questions
