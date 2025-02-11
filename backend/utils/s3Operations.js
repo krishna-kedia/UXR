@@ -79,7 +79,7 @@ const configureBucketCors = async () => {
                         ],
                         AllowedMethods: ['PUT', 'POST', 'GET'],
                         AllowedOrigins: [
-                            process.env.FRONTEND_URL || 'http://localhost:3000',
+                            process.env.FRONTEND_URL || 'http://localhost:3000' || 'http://15.207.2.159',
                             // Add additional origins as needed
                         ],
                         ExposeHeaders: ['ETag'],

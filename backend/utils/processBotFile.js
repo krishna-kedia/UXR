@@ -186,7 +186,7 @@ async function generateTranscriptQuestions(transcriptId) {
             }));
         }
 
-        const response = await fetch(`/fastapi/generate-transcript-questions/${transcriptId}`, {
+        const response = await fetch(`http://15.207.2.159/fastapi/generate-transcript-questions/${transcriptId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
