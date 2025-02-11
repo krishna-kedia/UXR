@@ -76,7 +76,7 @@ const TranscriptDetails = ({
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    fileUrl: 's3Url',
+                    fileUrl: s3Url,
                     transcribeMethod: 'aws',
                     transcribeLang: 'en-US',
                     transcribeSpeakerNumber: 2
@@ -100,7 +100,7 @@ const TranscriptDetails = ({
     const handleQuestionGeneration = async (transcriptId) => {
         try {
             setUploadStatus('GENERATING_QUESTIONS');
-            const questionsResponse = await fetch(`http://localhost:5001/api/transcripts/generate-transcript-questions/${transcriptId}`, {
+            const questionsResponse = await fetch(`/api/transcripts/generate-transcript-questions/${transcriptId}`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
