@@ -30,7 +30,7 @@ const CreateQuestionOverlay = ({ projectId, onSave, questionsCreatedDateTime, ex
         console.log(projectId, "project id");
 
         try {
-            const response = await fetch(`http://127.0.0.1:8000/generate-questions/${projectId}`, {
+            const response = await fetch(`http://15.207.2.159/fastapi/generate-questions/${projectId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
