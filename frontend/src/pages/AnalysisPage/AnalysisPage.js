@@ -37,7 +37,7 @@ function AnalysisPage() {
             }, {});
             const transcriptId = transcript._id;    
 
-            const response = await fetch(`/fastapi/get-all-answer-single-transcript-grid/${transcriptId}`, {
+            const response = await fetch(`http://15.207.2.159/fastapi/get-all-answer-single-transcript-grid/${transcriptId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

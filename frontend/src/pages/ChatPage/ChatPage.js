@@ -148,7 +148,7 @@ function ChatPage() {
             
             const sessionId = activeSession.sessionId;
 
-            const response = await fetch(`/fastapi/chat/${sessionId}`, {
+            const response = await fetch(`http://15.207.2.159/fastapi/chat/${sessionId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

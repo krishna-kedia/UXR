@@ -93,7 +93,7 @@ spk_0: You too bye bye, bye, thanks.`
 
 async function uploadToS3({ botUrl, s3FilePath, sessionId }) {
     try {
-        const uploadResponse = await fetch(`/fastapi/upload-s3file-to-s3bucket/${sessionId}`, {
+        const uploadResponse = await fetch(`http://15.207.2.159/fastapi/upload-s3file-to-s3bucket/${sessionId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -143,32 +143,32 @@ async function processTranscript({
             }));
         }
 
-        // const response = await fetch(`/fastapi/transcribe-file/${transcriptId}`, {
-        //     method: 'POST',
-        //     headers: {
-        //         'Content-Type': 'application/json'
-        //     },
-        //     body: JSON.stringify({
-        //         url: fileUrl,
-        //         transcribe_method: transcribeMethod,
-        //         transcribe_lang: transcribeLang,
-        //         transcribe_speaker_number: transcribeSpeakerNumber
-        //     })
-        // });
+        const response = await fetch(`http://15.207.2.159/fastapi/transcribe-file/${transcriptId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                url: fileUrl,
+                transcribe_method: transcribeMethod,
+                transcribe_lang: transcribeLang,
+                transcribe_speaker_number: transcribeSpeakerNumber
+            })
+        });
 
-        // if (!response.ok) {
-        //     const errorData = await response.json();
-        //     throw new Error(JSON.stringify({
-        //         message: 'Failed to transcribe file',
-        //         status: response.status,
-        //         statusText: response.statusText,
-        //         apiError: errorData.detail || 'Unknown transcription error'
-        //     }));
-        // }
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(JSON.stringify({
+                message: 'Failed to transcribe file',
+                status: response.status,
+                statusText: response.statusText,
+                apiError: errorData.detail || 'Unknown transcription error'
+            }));
+        }
 
-        // const data = await response.json();
-        // return data.transcript;
-        return text;
+        const data = await response.json();
+        return data.transcript;
+        // return text;
 
     } catch (error) {
         console.error('Error in processTranscript:', error);

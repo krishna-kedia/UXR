@@ -15,7 +15,7 @@ const HandleQuestionOverlay = ({ existingQuestions, onSave, onClose }) => {
         const generateQuestions = async () => {
             
             try {
-                const response = await fetch(`/fastapi/generate-questions/${projectId}`, {
+                const response = await fetch(`http://15.207.2.159/fastapi/generate-questions/${projectId}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
