@@ -377,4 +377,66 @@ router.post('/generate-transcript-questions/:transcriptId', auth, async (req, re
     }
 });
 
+// Add this endpoint
+router.delete('/:transcriptId', auth, async (req, res) => {
+    try {
+        const { transcriptId } = req.params;
+        const transcript = await Transcript.findById(transcriptId);
+        
+        if (!transcript) {
+            return res.status(404).json({ error: 'Transcript not found' });
+        }
+
+        // Delete from S3 if file exists
+        if (transcript.s3Key) {
+            const deleteCommand = new DeleteObjectCommand({
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Key: transcript.s3Key
+            });
+            await s3Client.send(deleteCommand);
+        }
+
+        // Remove transcript reference from project
+        await Project.findByIdAndUpdate(
+            transcript.projectId,
+            { $pull: { transcripts: transcriptId } }
+        );
+
+        // Delete the transcript
+        await Transcript.findByIdAndDelete(transcriptId);
+
+        res.json({ message: 'Transcript deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting transcript:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Add this endpoint
+router.put('/:transcriptId', auth, async (req, res) => {
+    try {
+        const { transcriptId } = req.params;
+        const { transcriptName, metadata } = req.body;
+
+        const transcript = await Transcript.findByIdAndUpdate(
+            transcriptId,
+            { 
+                transcriptName,
+                metadata,
+                updatedAt: new Date()
+            },
+            { new: true }
+        );
+
+        if (!transcript) {
+            return res.status(404).json({ error: 'Transcript not found' });
+        }
+
+        res.json(transcript);
+    } catch (error) {
+        console.error('Error updating transcript:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;

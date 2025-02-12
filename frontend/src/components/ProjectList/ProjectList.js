@@ -1,19 +1,15 @@
 import React from 'react';
 import { Card, CardContent, Typography, IconButton } from '@mui/material';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate } from 'react-router-dom';
 import './ProjectList.css';
 
-function ProjectList({ projects }) {
+function ProjectList({ projects, onEdit, onDelete }) {
     const navigate = useNavigate();
 
     const handleProjectClick = (projectId) => {
         navigate(`/project/${projectId}`);
-    };
-
-    const handleMoreClick = (e, projectId) => {
-        e.stopPropagation(); // Prevent card click when clicking the more button
-        // Handle more button click
     };
 
     return (
@@ -48,8 +44,23 @@ Created {getTimeAgo(project.createdAt)}
                             </div>
                         </div>
                         <div className="project-actions">
-                            <IconButton onClick={(e) => handleMoreClick(e, project._id)}>
-                                <MoreVertIcon />
+                            <IconButton 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onEdit(project);
+                                }}
+                                className="action-button edit-button"
+                            >
+                                <EditIcon />
+                            </IconButton>
+                            <IconButton 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDelete(project);
+                                }}
+                                className="action-button delete-button"
+                            >
+                                <DeleteIcon />
                             </IconButton>
                         </div>
                     </CardContent>

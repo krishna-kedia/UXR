@@ -10,13 +10,20 @@ import Navbar from './components/Navbar/Navbar';
 import './App.css';
 import AnalysisPage from './pages/AnalysisPage/AnalysisPage';
 import ChatPage from './pages/ChatPage/ChatPage';
+import { useState } from 'react';
 
 // Layout for authenticated pages with sidebar and navbar
 function AuthenticatedLayout({ children }) {
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+
+  const handleSidebarExpand = (expanded) => {
+    setIsSidebarExpanded(expanded);
+  };
+
   return (
     <div className="app-container">
-      <div className="sidebar-container">
-        <Sidebar />
+      <div className={`sidebar-container ${isSidebarExpanded ? 'expanded' : ''}`}>
+        <Sidebar onExpand={handleSidebarExpand} />
       </div>
       <div className="pages-container">
         {/* <Navbar /> */}

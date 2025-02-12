@@ -53,8 +53,23 @@
 
 .project-actions {
     display: flex;
-    align-items: center;
     gap: 8px;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.project-card:hover .project-actions {
+    opacity: 1;
+}
+
+.action-button.edit-button:hover {
+    color: #2196f3;
+    background-color: rgba(33, 150, 243, 0.1);
+}
+
+.action-button.delete-button:hover {
+    color: #f44336;
+    background-color: rgba(244, 67, 54, 0.1);
 }
 
 /* Typography overrides */

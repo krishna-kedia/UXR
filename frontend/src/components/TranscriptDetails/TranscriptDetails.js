@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Videocam, Person } from '@mui/icons-material'; // Using MUI icons
+import { Videocam, Person, Edit, Delete } from '@mui/icons-material'; // Using MUI icons
 import './TranscriptDetails.css';
 import image from './images.jpeg'
 
@@ -61,7 +61,9 @@ const TranscriptDetails = ({
         uploadStatus: initialUploadStatus,
         progress,
         s3Url
-    } 
+    },
+    onDelete,
+    onEdit 
 }) => {
     const [uploadStatus, setUploadStatus] = useState(initialUploadStatus);  // Add state
 
@@ -179,9 +181,26 @@ const TranscriptDetails = ({
                     <h3 className="transcript-name">
                         {transcriptName || name}
                     </h3>
-                    <span className="created-at">
-                        Created {formatTimeAgo(createdAt)}
-                    </span>
+                    <div className="transcript-actions">
+                        <button 
+                            className="transcript-action-button edit-transcript-button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onEdit && onEdit({_id, transcriptName, metadata});
+                            }}
+                        >
+                            <Edit />
+                        </button>
+                        <button 
+                            className="transcript-action-button delete-transcript-button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onDelete && onDelete(_id);
+                            }}
+                        >
+                            <Delete />
+                        </button>
+                    </div>
                 </div>
 
                 <div className="status-row">

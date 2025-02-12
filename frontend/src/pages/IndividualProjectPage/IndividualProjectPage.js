@@ -9,6 +9,13 @@ import UploadOptionsMenu from '../../components/UploadOptionsMenu/UploadOptionsM
 import Alert from '../../components/Alert/Alert';
 import Loader from '../../components/Loader/Loader';
 import HandleQuestionOverlay from '../../components/HandleQuestionOverlay/HandleQuestionOverlay';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
 
 function IndividualProjectPage() {
     const [transcripts, setTranscripts] = useState([]);
@@ -24,6 +31,10 @@ function IndividualProjectPage() {
     const [alert, setAlert] = useState(null);
     const [project, setProject] = useState({});
     const [showQuestionOverlay, setShowQuestionOverlay] = useState(false);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [editingTranscript, setEditingTranscript] = useState(null);
+    const [transcriptToDelete, setTranscriptToDelete] = useState(null);
 
     const showAlert = (message, type) => {
         setAlert({ message, type });
@@ -458,6 +469,64 @@ function IndividualProjectPage() {
     };
     const hasTranscripts = project.transcripts && project.transcripts.length > 0 && project.transcripts.some(transcript => transcript.uploadStatus === 'READY_TO_USE');
 
+    const handleEditTranscript = (transcript) => {
+        setEditingTranscript(transcript);
+        setEditDialogOpen(true);
+    };
+
+    const handleUpdateTranscript = async () => {
+        try {
+            const response = await fetch(`/api/transcripts/${editingTranscript._id}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    transcriptName: editingTranscript.transcriptName,
+                    metadata: editingTranscript.metadata
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update transcript');
+            }
+
+            showAlert('Transcript updated successfully', 'success');
+            setEditDialogOpen(false);
+            fetchProjectDetails();
+        } catch (error) {
+            showAlert(error.message, 'error');
+        }
+    };
+
+    const handleDeleteTranscript = (transcriptId) => {
+        const transcript = transcripts.find(t => t._id === transcriptId);
+        setTranscriptToDelete(transcript);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        try {
+            const response = await fetch(`/api/transcripts/${transcriptToDelete._id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete transcript');
+            }
+
+            showAlert('Transcript deleted successfully', 'success');
+            setDeleteDialogOpen(false);
+            fetchProjectDetails();
+        } catch (error) {
+            showAlert(error.message, 'error');
+        }
+    };
+
     return (
         <>
             {isLoading ? (
@@ -518,7 +587,8 @@ function IndividualProjectPage() {
                                             progress: uploadProgress[transcript._id] || 0,
                                             uploadStatus: transcript.uploadStatus
                                         }}
-                                        onDelete={fetchProjectDetails}
+                                        onDelete={handleDeleteTranscript}
+                                        onEdit={handleEditTranscript}
                                     />
                                 ))}
                         </div>
@@ -540,6 +610,46 @@ function IndividualProjectPage() {
                         onClose={() => setDialogOpen(false)}
                         onSubmit={handleSubmit}
                     />
+
+                    {/* Edit Dialog */}
+                    <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)}>
+                        <DialogTitle>Edit Transcript</DialogTitle>
+                        <DialogContent>
+                            <TextField
+                                autoFocus
+                                margin="dense"
+                                label="Transcript Name"
+                                type="text"
+                                fullWidth
+                                value={editingTranscript?.transcriptName || ''}
+                                onChange={(e) => setEditingTranscript(prev => ({
+                                    ...prev,
+                                    transcriptName: e.target.value
+                                }))}
+                            />
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+                            <Button onClick={handleUpdateTranscript} variant="contained">Save</Button>
+                        </DialogActions>
+                    </Dialog>
+
+                    {/* Delete Dialog */}
+                    <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+                        <DialogTitle>Delete Transcript?</DialogTitle>
+                        <DialogContent>
+                            <DialogContentText>
+                                Are you sure you want to delete "{transcriptToDelete?.transcriptName}"? 
+                                This action cannot be undone and will permanently delete the transcript and all associated data.
+                            </DialogContentText>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+                            <Button onClick={handleConfirmDelete} color="error" variant="contained">
+                                Delete
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
                 </div>
             )}
         </>
