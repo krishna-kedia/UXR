@@ -10,6 +10,7 @@ const projectRoutes = require('./routes/projects');
 const questionRoutes = require('./routes/questions');
 const botRoutes = require('./routes/bot');
 const chatRoutes = require('./routes/chat');
+const contactRoutes = require('./routes/contact');
 const { initializeS3 } = require('./utils/s3Operations');
 
 const app = express();
@@ -48,6 +49,7 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/bot', botRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/contact', contactRoutes);
 // Add a test route to verify the server is working
 app.get('/api/test', (req, res) => {
     res.json({ message: 'Server is working!' });

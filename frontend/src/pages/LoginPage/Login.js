@@ -49,8 +49,8 @@ function Login() {
             // Use the login function from AuthContext
             login(data.user, data.token);
 
-            // Redirect to home page
-            navigate('/');
+            // Change this line to redirect to dashboard instead of home
+            navigate('/dashboard');
         } catch (err) {
             console.error('Detailed error:', err);
             setError(err.message || 'Failed to connect to the server');

@@ -8,7 +8,7 @@
     "server": "cd backend && npm start",
     "client": "cd frontend && npm start",
     "api": "conda run -n uxr_api && cd py_api && uvicorn api:app --host 0.0.0.0 --port 8000 --reload",
-    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install && npm install -D tailwindcss postcss autoprefixer",
     "dev": "concurrently \"npm run server\" \"npm run client\" \"npm run api\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

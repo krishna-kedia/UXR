@@ -10,7 +10,9 @@ import Navbar from './components/Navbar/Navbar';
 import './App.css';
 import AnalysisPage from './pages/AnalysisPage/AnalysisPage';
 import ChatPage from './pages/ChatPage/ChatPage';
+import LandingPage from './pages/LandingPage/LandingPage';
 import { useState } from 'react';
+import './index.css';
 
 // Layout for authenticated pages with sidebar and navbar
 function AuthenticatedLayout({ children }) {
@@ -49,6 +51,7 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
+          <Route path="/" element={<LandingPage />} />
           {/* Public route */}
           <Route 
             path="/login" 
@@ -65,8 +68,7 @@ function App() {
               <ProtectedRoute>
                 <AuthenticatedLayout>
                   <Routes>
-                    <Route path="/" element={<Navigate to="/projects" replace />} />
-                    <Route path="/projects" element={<ProjectPage />} />
+                    <Route path="/dashboard" element={<ProjectPage />} />
                     <Route path="/project/:projectId" element={<IndividualProjectPage />} />
                     <Route path="/questions" element={<QuestionsPage />} />
                     <Route path="/calls" element={<div>Calls Page</div>} />

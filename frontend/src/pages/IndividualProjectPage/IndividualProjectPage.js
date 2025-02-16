@@ -67,7 +67,8 @@ function IndividualProjectPage() {
                 bot_session_id: transcript.bot_session_id,
                 uploadStatus: transcript.uploadStatus,
                 progress: transcript.progress,
-                createdAt: transcript.createdAt
+                createdAt: transcript.createdAt,
+                s3Url: transcript.s3Url
             }));
 
             // Get bot statuses for meeting recordings
