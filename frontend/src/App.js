@@ -48,23 +48,17 @@ function LoginLayout({ children }) {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          {/* Public route */}
-          <Route 
-            path="/login" 
-            element={
-              <LoginLayout>
-                <Login />
-              </LoginLayout>
-            } 
-          />
+    <Router>
+      <Routes>
+        {/* Public routes - outside AuthProvider */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<Login />} />  {/* Login stays outside */}
 
-          {/* Protected routes */}
-          <Route
-            element={
+        {/* Protected routes - wrapped in AuthProvider */}
+        <Route
+          path="/*"
+          element={
+            <AuthProvider>
               <ProtectedRoute>
                 <AuthenticatedLayout>
                   <Routes>
@@ -79,16 +73,16 @@ function App() {
                   </Routes>
                 </AuthenticatedLayout>
               </ProtectedRoute>
-            }
-            path="/*"
-          />
+            </AuthProvider>
+          }
+        />
 
-          {/* Catch all other routes and redirect */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Router>
-    </AuthProvider>
+        {/* Catch all route */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
   );
 }
 
 export default App;
+
