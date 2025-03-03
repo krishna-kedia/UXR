@@ -174,12 +174,6 @@ function IndividualProjectPage() {
 
         const uploadPartWithRetry = async (partNumber, chunk, attempt = 1) => {
             try {
-                console.log(`[Part ${partNumber}] Starting upload attempt ${attempt}/${MAX_RETRIES}`, {
-                    size: chunk.size,
-                    start: chunk.size * (partNumber - 1),
-                    end: chunk.size * partNumber
-                });
-                
                 const urlResponse = await fetch(
                     `/api/transcripts/upload-part-url?uploadId=${uploadId}&partNumber=${partNumber}&s3Key=${s3Key}`,
                     {
@@ -188,49 +182,31 @@ function IndividualProjectPage() {
                         }
                     }
                 );
-                
+
                 if (!urlResponse.ok) {
-                    const errorText = await urlResponse.text();
-                    console.error(`[Part ${partNumber}] Failed to get signed URL:`, errorText);
                     throw new Error('Failed to get upload URL');
                 }
 
                 const { signedUrl } = await urlResponse.json();
 
-
                 const uploadResponse = await fetch(signedUrl, {
                     method: 'PUT',
                     headers: {
-                        'Content-Type': data.file.type,
+                        'Content-Type': 'application/octet-stream',  // Use this for binary data
                         'Content-Length': chunk.size.toString(),
                     },
-                    body: chunk
+                    body: chunk,
+                    mode: 'cors'  // Add this
                 });
 
                 if (!uploadResponse.ok) {
-                    const errorText = await uploadResponse.text();
-                    console.error(`[Part ${partNumber}] Upload failed:`, {
-                        status: uploadResponse.status,
-                        statusText: uploadResponse.statusText,
-                        error: errorText
-                    });
                     throw new Error(`Failed to upload part ${partNumber}`);
                 }
 
-                const rawETag = uploadResponse.headers.get('ETag');
-
-                
-                if (!rawETag) {
-                    throw new Error(`No ETag received for part ${partNumber}`);
-                }
-                
-                return rawETag;  // Return with quotes intact
-
+                return uploadResponse.headers.get('ETag');
             } catch (error) {
-                console.error(`[Part ${partNumber}] Error:`, error);
                 if (attempt < MAX_RETRIES) {
-                    const delayTime = RETRY_DELAY * attempt;
-                    await wait(delayTime);
+                    await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
                     return uploadPartWithRetry(partNumber, chunk, attempt + 1);
                 }
                 throw error;

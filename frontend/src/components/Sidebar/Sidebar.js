@@ -38,8 +38,8 @@ function Sidebar({ onExpand }) {
             navigate(`/analysis/${projectData._id}`);
         } else if (path === 'chat') {
             navigate('/chat');
-        } else if (path === 'home' || !projectData) {
-            navigate('/');
+        } else if (path === 'home') {
+            navigate('/dashboard');
         } else if (path === 'logout') {
             localStorage.clear();
             sessionStorage.clear();

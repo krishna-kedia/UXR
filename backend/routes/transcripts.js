@@ -130,12 +130,11 @@ router.get('/upload-part-url', auth, async (req, res) => {
         // Add CORS headers to the presigned URL request
         const signedUrl = await getSignedUrl(s3Client, command, { 
             expiresIn: 3600,
-            signableHeaders: new Set(['host']), // Only sign the host header
+            signableHeaders: new Set(['host', 'content-type', 'content-length']), // Add required headers
         });
 
         res.json({ 
             signedUrl,
-            // Include these headers in the response so frontend knows what's allowed
             allowedHeaders: [
                 'content-type',
                 'content-length',

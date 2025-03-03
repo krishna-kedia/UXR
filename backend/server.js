@@ -15,9 +15,15 @@ const { initializeS3 } = require('./utils/s3Operations');
 
 const app = express();
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://localhost:5001'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    origin: [
+        'http://localhost:3000',
+        'http://localhost:5001',
+        'http://15.207.2.159',
+        'http://0.0.0.0'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'x-amz-*'],
+    exposedHeaders: ['ETag'],
     credentials: true
 }));
 
