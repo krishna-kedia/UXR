@@ -37,7 +37,7 @@ function AnalysisPage() {
             }, {});
             const transcriptId = transcript._id;    
 
-            const response = await fetch(`http://localhost:8000/get-all-answer-single-transcript-grid/${transcriptId}`, {
+            const response = await fetch(`http://15.207.2.159/fastapi/get-all-answer-single-transcript-grid/${transcriptId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -55,7 +55,7 @@ function AnalysisPage() {
             const data = await response.json();
 
             // Update transcript's ActiveQuestionsAnswers
-            await fetch('http://localhost:5001/api/transcripts/updateQA', {
+            await fetch('/api/transcripts/updateQA', {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -93,7 +93,7 @@ function AnalysisPage() {
     useEffect(() => {
         const fetchProjectDetails = async () => {
             try {
-                const response = await fetch(`http://localhost:5001/api/projects/${projectId}`, {
+                const response = await fetch(`/api/projects/${projectId}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }

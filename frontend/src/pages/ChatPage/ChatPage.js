@@ -19,45 +19,40 @@ function ChatPage() {
     useEffect(() => {
         const initializeData = async () => {
             try {
-            //     setInitialLoading(true);
-            //     await Promise.all([
-            //         fetchProjectsData(),
-            //         fetchChatSessions()
-            //     ]);
-    
-            //     // Handle URL parameters
-            //     const urlParams = new URLSearchParams(window.location.search);
-            //     const projectId = urlParams.get('project');
-            //     const transcriptId = urlParams.get('transcript');
-            //     const question = urlParams.get('question');
-    
-            //     if (projectId && question) {
-            //         // Get project name from projectsData
-            //         const project = projectsData?.projects?.find(p => p.id === projectId);
-            //         const transcript = project?.transcripts?.find(t => t.id === transcriptId);
-                    
-            //         // Start a new chat with the provided parameters
-            //         const formData = {
-            //             type: transcriptId ? 'transcript' : 'project',
-            //             projectId,
-            //             transcriptId,
-            //             chatName: transcriptId ? transcript?.name : project?.name,
-            //             initialQuestion: question
-            //         };
-    
-            //         // Create new chat session
-            //         const newSession = await handleStartNewChat(formData);
-                    
-            //         if (newSession) {
-            //             // Set as active session
-            //             setActiveSession(newSession);
-                        
-            //             // Send initial question
-            //             await handleSendMessage(question);
-            //         }
-            //     }
-                await fetchProjectsData();
+                setInitialLoading(true);
+                const projectsData = await fetchProjectsData();
+                setProjectsData(projectsData);
+                
                 await fetchChatSessions();
+
+                // Handle URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const projectId = urlParams.get('project');
+                const transcriptId = urlParams.get('transcript');
+                const question = urlParams.get('question');
+
+                if (projectId && question) {
+                    // Get project name from projectsData
+                    const project = projectsData?.projects?.find(p => p.id === projectId);
+                    const transcript = project?.transcripts?.find(t => t.id === transcriptId);
+                    
+                    // Start a new chat with the provided parameters
+                    const formData = {
+                        type: transcriptId ? 'transcript' : 'project',
+                        projectId,
+                        transcriptId,
+                        chatName: transcriptId ? transcript?.name : project?.name,
+                        initialQuestion: question
+                    };
+
+                    // Create new chat session
+                    const newSession = await handleStartNewChat(formData);
+                    
+                    if (newSession) {
+                        setActiveSession(newSession);
+                        await handleSendMessage(question);
+                    }
+                }
             } catch (error) {
                 setError('Failed to load initial data');
                 console.error('Initialization error:', error);
@@ -65,29 +60,30 @@ function ChatPage() {
                 setInitialLoading(false);
             }
         };
-    
+
         initializeData();
-    }, [projectsData]); // Add projectsData as dependency
+    }, []); // Remove projectsData from dependency array
 
     const fetchProjectsData = async () => {
         try {
-            const response = await fetch('http://localhost:5001/api/chat/data', {
+            const response = await fetch('/api/chat/data', {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             });
             if (!response.ok) throw new Error('Failed to fetch projects data');
             const data = await response.json();
-            setProjectsData(data);
+            return data;
         } catch (error) {
             setError('Failed to load projects data');
             console.error('Error:', error);
+            return null;
         }
     };
 
     const fetchChatSessions = async () => {
         try {
-            const response = await fetch('http://localhost:5001/api/chat/sessions', {
+            const response = await fetch('/api/chat/sessions', {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
@@ -108,7 +104,7 @@ function ChatPage() {
     const handleStartNewChat = async (formData) => {
         try {
             setLoading(true);
-            const response = await fetch('http://localhost:5001/api/chat/start', {
+            const response = await fetch('/api/chat/start', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -148,7 +144,7 @@ function ChatPage() {
             
             const sessionId = activeSession.sessionId;
 
-            const response = await fetch(`http://localhost:8000/chat/${sessionId}`, {
+            const response = await fetch(`http://15.207.2.159/fastapi/chat/${sessionId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

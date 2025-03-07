@@ -2,8 +2,16 @@ const express = require('express');
 const router = express.Router();
 const Project = require('../models/projectModel');
 const Question = require('../models/questionModel');
+const Transcript = require('../models/transcriptModel');
+const ChatSession = require('../models/chatSessionModel');
 const auth = require('../middleware/auth');
 const User = require('../models/userModel');
+const AWS = require('aws-sdk');
+const s3 = new AWS.S3({
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    region: process.env.AWS_REGION
+});
 
 // FetchAllProjects: Get all projects for authenticated user
 router.get('/', auth, async (req, res) => {
@@ -136,6 +144,96 @@ router.post('/', auth, async (req, res) => {
         res.status(500).json({ 
             error: 'Failed to create project. All changes have been rolled back.' 
         });
+    }
+});
+
+// Delete project
+router.delete('/:projectId', auth, async (req, res) => {
+    try {
+        const { projectId } = req.params;
+
+        // Get project with all related data
+        const project = await Project.findById(projectId)
+            .populate('transcripts')
+            .populate('questions');
+
+        if (!project) {
+            return res.status(404).json({ error: 'Project not found' });
+        }
+
+        // 1. Delete S3 files
+        const s3DeletePromises = project.transcripts
+            .filter(transcript => transcript.s3Url)
+            .map(transcript => {
+                try {
+                    const key = transcript.s3Url.split('.com/')[1];
+                    if (!key) {
+                        console.error('Invalid S3 URL format:', transcript.s3Url);
+                        return Promise.resolve(); // Skip if URL is invalid
+                    }
+                    return s3.deleteObject({
+                        Bucket: process.env.AWS_S3_BUCKET_NAME,
+                        Key: key
+                    }).promise().catch(err => {
+                        console.error('Error deleting S3 object:', err);
+                        return Promise.resolve(); // Continue with deletion even if S3 fails
+                    });
+                } catch (error) {
+                    console.error('Error processing S3 URL:', error);
+                    return Promise.resolve(); // Skip if there's an error
+                }
+            });
+
+        await Promise.all(s3DeletePromises);
+
+        // 2. Delete all related data
+        await Promise.all([
+            // Delete all transcripts
+            ...project.transcripts.map(transcript => 
+                Transcript.findByIdAndDelete(transcript._id)
+            ),
+            // Delete all questions
+            ...project.questions.map(question => 
+                Question.findByIdAndDelete(question._id)
+            ),
+            // Delete all chat sessions related to this project
+            ChatSession.deleteMany({ projectId }),
+            // Remove project from user's projects array
+            User.findByIdAndUpdate(
+                req.user._id,
+                { $pull: { projects: projectId } }
+            ),
+            // Delete the project itself
+            Project.findByIdAndDelete(projectId)
+        ]);
+
+        res.json({ message: 'Project deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting project:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Update project
+router.put('/:projectId', auth, async (req, res) => {
+    try {
+        const { projectId } = req.params;
+        const { projectName } = req.body;
+
+        const project = await Project.findByIdAndUpdate(
+            projectId,
+            { projectName },
+            { new: true }
+        );
+
+        if (!project) {
+            return res.status(404).json({ error: 'Project not found' });
+        }
+
+        res.json(project);
+    } catch (error) {
+        console.error('Error updating project:', error);
+        res.status(500).json({ error: error.message });
     }
 });
 

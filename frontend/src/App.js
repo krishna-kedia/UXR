@@ -10,13 +10,22 @@ import Navbar from './components/Navbar/Navbar';
 import './App.css';
 import AnalysisPage from './pages/AnalysisPage/AnalysisPage';
 import ChatPage from './pages/ChatPage/ChatPage';
+import LandingPage from './pages/LandingPage/LandingPage';
+import { useState } from 'react';
+import './index.css';
 
 // Layout for authenticated pages with sidebar and navbar
 function AuthenticatedLayout({ children }) {
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+
+  const handleSidebarExpand = (expanded) => {
+    setIsSidebarExpanded(expanded);
+  };
+
   return (
     <div className="app-container">
-      <div className="sidebar-container">
-        <Sidebar />
+      <div className={`sidebar-container ${isSidebarExpanded ? 'expanded' : ''}`}>
+        <Sidebar onExpand={handleSidebarExpand} />
       </div>
       <div className="pages-container">
         {/* <Navbar /> */}
@@ -39,27 +48,24 @@ function LoginLayout({ children }) {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <Routes>
-          {/* Public route */}
-          <Route 
-            path="/login" 
-            element={
-              <LoginLayout>
-                <Login />
-              </LoginLayout>
-            } 
-          />
+    <Router>
+      <AuthProvider>
+      <Routes>
+        {/* Public routes - outside AuthProvider */}
+        
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<Login />} />  {/* Login stays outside */}
 
-          {/* Protected routes */}
-          <Route
-            element={
+        {/* Protected routes - wrapped in AuthProvider */}
+        <Route
+          path="/*"
+          element={
+            <AuthProvider>
               <ProtectedRoute>
                 <AuthenticatedLayout>
                   <Routes>
-                    <Route path="/" element={<Navigate to="/projects" replace />} />
-                    <Route path="/projects" element={<ProjectPage />} />
+                    
+                    <Route path="/dashboard" element={<ProjectPage />} />
                     <Route path="/project/:projectId" element={<IndividualProjectPage />} />
                     <Route path="/questions" element={<QuestionsPage />} />
                     <Route path="/calls" element={<div>Calls Page</div>} />
@@ -70,16 +76,17 @@ function App() {
                   </Routes>
                 </AuthenticatedLayout>
               </ProtectedRoute>
-            }
-            path="/*"
-          />
+            </AuthProvider>
+          }
+        />
 
-          {/* Catch all other routes and redirect */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Router>
-    </AuthProvider>
+        {/* Catch all route */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      </AuthProvider>
+    </Router>
   );
 }
 
 export default App;
+

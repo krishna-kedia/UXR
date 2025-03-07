@@ -384,3 +384,37 @@
 .reprocess-button:hover {
     background-color: #B91C1C;
 }
+
+/* Add to existing CSS */
+.transcript-actions {
+    display: flex;
+    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.transcript-card:hover .transcript-actions {
+    opacity: 1;
+}
+
+.transcript-action-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.transcript-action-button.edit-transcript-button:hover {
+    color: #2196f3;
+    background-color: rgba(33, 150, 243, 0.1);
+}
+
+.transcript-action-button.delete-transcript-button:hover {
+    color: #f44336;
+    background-color: rgba(244, 67, 54, 0.1);
+}

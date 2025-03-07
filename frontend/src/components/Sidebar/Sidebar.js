@@ -1,48 +1,58 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { IconButton, Typography } from '@mui/material';
-import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
-import SettingsIcon from '@mui/icons-material/Settings';
-import PersonIcon from '@mui/icons-material/Person';
-import StorageIcon from '@mui/icons-material/Storage'; // Data
-import LocalOfferIcon from '@mui/icons-material/LocalOffer'; // Tagging
-import AssessmentIcon from '@mui/icons-material/Assessment'; // Analysis
-import BarChartIcon from '@mui/icons-material/BarChart'; // Reporting
+import { Typography } from '@mui/material';
+import HomeIcon from '@mui/icons-material/Home';
+import DescriptionIcon from '@mui/icons-material/Description';
+import AssessmentIcon from '@mui/icons-material/Assessment';
+import ChatIcon from '@mui/icons-material/Chat';
+import LogoutIcon from '@mui/icons-material/Logout';
 import './Sidebar.css';
-import logo from './images.png'
+import logo from './images.png';
 
-function Sidebar() {
+function Sidebar({ onExpand }) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [expandTimer, setExpandTimer] = useState(null);
     const location = useLocation();
     const navigate = useNavigate();
-    const user = JSON.parse(localStorage.getItem('user'));
     
-    const projectId = location.pathname.split('/').find(segment => 
-        segment.match(/^[0-9a-fA-F]{24}$/)
-    );
+    const projectData = JSON.parse(sessionStorage.getItem('projectData'));
 
     const handleMouseEnter = () => {
         const timer = setTimeout(() => {
             setIsExpanded(true);
         }, 200);
         setExpandTimer(timer);
+        onExpand?.(true);
     };
 
     const handleMouseLeave = () => {
         clearTimeout(expandTimer);
         setIsExpanded(false);
+        onExpand?.(false);
     };
 
-    const handleBack = () => {
-        navigate(-1);
+    const handleNavigation = (path) => {
+        if (path === 'transcripts' && projectData) {
+            navigate(`/project/${projectData._id}`);
+        } else if (path === 'analysis' && projectData) {
+            navigate(`/analysis/${projectData._id}`);
+        } else if (path === 'chat') {
+            navigate('/chat');
+        } else if (path === 'home') {
+            navigate('/dashboard');
+        } else if (path === 'logout') {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = '/';
+        }
     };
 
     const navigationItems = [
-        { icon: <StorageIcon />, label: 'Data', path: `/project/${projectId}` },
-        { icon: <LocalOfferIcon />, label: 'Tagging', path: `/project/${projectId}/tagging` },
-        { icon: <AssessmentIcon />, label: 'Analysis', path: `/project/${projectId}/analysis` },
-        { icon: <BarChartIcon />, label: 'Reporting', path: `/project/${projectId}/reporting` },
+        { icon: <HomeIcon />, label: 'All Projects', path: 'home' },
+        { icon: <DescriptionIcon />, label: 'Transcripts', path: 'transcripts' },
+        { icon: <AssessmentIcon />, label: 'Analysis', path: 'analysis' },
+        { icon: <ChatIcon />, label: 'Chat', path: 'chat' },
+        { icon: <LogoutIcon />, label: 'Logout', path: 'logout' },
     ];
 
     return (
@@ -52,7 +62,7 @@ function Sidebar() {
             onMouseLeave={handleMouseLeave}
         >
             <div className="sidebar-top">
-                <div className="logo-container" onClick={() => navigate('/projects')}>
+                <div className="logo-container" onClick={() => navigate('/')}>
                     <img src={logo} alt="Logo" className="logo-icon" />
                     {isExpanded && (
                         <Typography variant="h6" className="logo-text">
@@ -60,15 +70,14 @@ function Sidebar() {
                         </Typography>
                     )}
                 </div>
-                
             </div>
 
             <nav className="sidebar-nav">
                 {navigationItems.map((item) => (
                     <div 
                         key={item.label} 
-                        className="nav-item"
-                        onClick={() => navigate(item.path)}
+                        className={`nav-item nav-item-${item.label} ${location.pathname === (item.path === 'home' ? '/' : `/${item.path}`) ? 'active' : ''}`}
+                        onClick={() => handleNavigation(item.path)}
                     >
                         {React.cloneElement(item.icon, { sx: { fontWeight: 300 } })}
                         {isExpanded && (
@@ -77,27 +86,6 @@ function Sidebar() {
                     </div>
                 ))}
             </nav>
-
-            <div className="sidebar-bottom">
-                <div 
-                    className="nav-item"
-                    onClick={() => navigate(`/project/${projectId}/settings`)}
-                >
-                    <SettingsIcon sx={{ fontWeight: 300 }} />
-                    {isExpanded && (
-                        <span className="nav-label">Settings</span>
-                    )}
-                </div>
-                <div 
-                    className="nav-item"
-                    onClick={() => navigate(`/user/${user.id}/settings`)}
-                >
-                    <PersonIcon sx={{ fontWeight: 300 }} />
-                    {isExpanded && (
-                        <span className="nav-label">Profile</span>
-                    )}
-                </div>
-            </div>
         </div>
     );
 }

@@ -29,7 +29,7 @@ function Login() {
                   };
 
             
-            const response = await fetch(`http://localhost:5001${endpoint}`, {
+            const response = await fetch(`${endpoint}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -49,8 +49,8 @@ function Login() {
             // Use the login function from AuthContext
             login(data.user, data.token);
 
-            // Redirect to home page
-            navigate('/');
+            // Change this line to redirect to dashboard instead of home
+            navigate('/dashboard');
         } catch (err) {
             console.error('Detailed error:', err);
             setError(err.message || 'Failed to connect to the server');

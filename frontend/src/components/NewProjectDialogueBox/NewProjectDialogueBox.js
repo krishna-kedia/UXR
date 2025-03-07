@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
     Dialog, 
     DialogTitle, 
@@ -11,19 +11,19 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import './NewProjectDialogueBox.css';
 
-function NewProjectDialogueBox({ onClose, onAdd }) {
-    const [projectName, setProjectName] = useState('');
+function NewProjectDialogueBox({ onClose, onAdd, initialValue = '', isEdit = false }) {
+    const [projectName, setProjectName] = useState(initialValue);
     const [error, setError] = useState('');
+
+    useEffect(() => {
+        setProjectName(initialValue);
+    }, [initialValue]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!projectName.trim()) {
-            setError('Project name is required');
-            return;
+        if (projectName.trim()) {
+            onAdd(projectName.trim());
         }
-        const userId = localStorage.getItem('userId');
-        onAdd(projectName, userId);
-        setProjectName('');
     };
 
     return (
@@ -35,7 +35,7 @@ function NewProjectDialogueBox({ onClose, onAdd }) {
             className="new-project-dialog"
         >
             <DialogTitle className="dialog-title">
-                New Project
+                {isEdit ? 'Edit Project' : 'Create New Project'}
                 <IconButton
                     aria-label="close"
                     onClick={onClose}
@@ -63,6 +63,7 @@ function NewProjectDialogueBox({ onClose, onAdd }) {
                         error={!!error}
                         helperText={error}
                         size="small"
+                        required
                     />
                 </DialogContent>
 
@@ -80,7 +81,7 @@ function NewProjectDialogueBox({ onClose, onAdd }) {
                         color="primary"
                         disabled={!projectName.trim()}
                     >
-                        Create Project
+                        {isEdit ? 'Save Changes' : 'Create Project'}
                     </Button>
                 </DialogActions>
             </form>

@@ -72,16 +72,9 @@ const configureBucketCors = async () => {
             CORSConfiguration: {
                 CORSRules: [
                     {
-                        AllowedHeaders: [
-                            'content-type',
-                            'content-length',
-                            'content-disposition'
-                        ],
-                        AllowedMethods: ['PUT', 'POST', 'GET'],
-                        AllowedOrigins: [
-                            process.env.FRONTEND_URL || 'http://localhost:3000',
-                            // Add additional origins as needed
-                        ],
+                        AllowedHeaders: ['*'],
+                        AllowedMethods: ['GET', 'PUT', 'POST', 'DELETE', 'HEAD'],
+                        AllowedOrigins: ['*'],  // For development. In production, specify your domains
                         ExposeHeaders: ['ETag'],
                         MaxAgeSeconds: 3600
                     }
@@ -91,9 +84,9 @@ const configureBucketCors = async () => {
 
         const command = new PutBucketCorsCommand(corsConfig);
         await s3Client.send(command);
-        console.log('S3 bucket CORS configuration updated successfully');
+        console.log('✅ S3 bucket CORS configuration updated successfully');
     } catch (error) {
-        console.error('Error configuring S3 bucket CORS:', error);
+        console.error('❌ Error configuring S3 bucket CORS:', error);
         throw error;
     }
 };

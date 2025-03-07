@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Videocam, Person } from '@mui/icons-material'; // Using MUI icons
+import { Videocam, Person, Edit, Delete } from '@mui/icons-material'; // Using MUI icons
 import './TranscriptDetails.css';
 import image from './images.jpeg'
 
@@ -61,7 +61,9 @@ const TranscriptDetails = ({
         uploadStatus: initialUploadStatus,
         progress,
         s3Url
-    } 
+    },
+    onDelete,
+    onEdit 
 }) => {
     const [uploadStatus, setUploadStatus] = useState(initialUploadStatus);  // Add state
 
@@ -69,14 +71,14 @@ const TranscriptDetails = ({
         setUploadStatus('TRANSCRIBING');
         
         try {
-            const transcribeResponse = await fetch(`http://localhost:5001/api/transcripts/transcribe/${transcriptId}`, {
+            const transcribeResponse = await fetch(`/api/transcripts/transcribe/${transcriptId}`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    fileUrl: 's3Url',
+                    fileUrl: s3Url,
                     transcribeMethod: 'aws',
                     transcribeLang: 'en-US',
                     transcribeSpeakerNumber: 2
@@ -100,7 +102,7 @@ const TranscriptDetails = ({
     const handleQuestionGeneration = async (transcriptId) => {
         try {
             setUploadStatus('GENERATING_QUESTIONS');
-            const questionsResponse = await fetch(`http://localhost:5001/api/transcripts/generate-transcript-questions/${transcriptId}`, {
+            const questionsResponse = await fetch(`/api/transcripts/generate-transcript-questions/${transcriptId}`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -179,9 +181,26 @@ const TranscriptDetails = ({
                     <h3 className="transcript-name">
                         {transcriptName || name}
                     </h3>
-                    <span className="created-at">
-                        Created {formatTimeAgo(createdAt)}
-                    </span>
+                    <div className="transcript-actions">
+                        <button 
+                            className="transcript-action-button edit-transcript-button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onEdit && onEdit({_id, transcriptName, metadata});
+                            }}
+                        >
+                            <Edit />
+                        </button>
+                        <button 
+                            className="transcript-action-button delete-transcript-button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onDelete && onDelete(_id);
+                            }}
+                        >
+                            <Delete />
+                        </button>
+                    </div>
                 </div>
 
                 <div className="status-row">

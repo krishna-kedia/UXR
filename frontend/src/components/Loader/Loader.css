@@ -1,4 +1,13 @@
 /* UXR/frontend/src/components/Loader/Loader.css */
+.loader-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    min-height: 300px;
+}
+
+/* Original Implementation
 .container {
     display: block;
     height: 300px;
@@ -50,7 +59,7 @@
 }
 
 /* Manually create styles for each baton */
-.baton-0, .baton-1, .baton-2, .baton-3, .baton-4, .baton-5, .baton-6, .baton-7, .baton-8, .baton-9,
+/* .baton-0, .baton-1, .baton-2, .baton-3, .baton-4, .baton-5, .baton-6, .baton-7, .baton-8, .baton-9,
 .baton-10, .baton-11, .baton-12, .baton-13, .baton-14, .baton-15, .baton-16, .baton-17, .baton-18, .baton-19,
 .baton-20, .baton-21, .baton-22, .baton-23, .baton-24, .baton-25, .baton-26, .baton-27, .baton-28, .baton-29,
 .baton-30, .baton-31, .baton-32, .baton-33, .baton-34, .baton-35 {
@@ -59,9 +68,9 @@
     position: absolute;
     top: calc(50% - 8px);
     transform-origin: 100%;
-}
+} */
 
-.baton-0 { transform: rotate(0deg); animation-delay: 0s; }
+/* .baton-0 { transform: rotate(0deg); animation-delay: 0s; }
 .baton-1 { transform: rotate(10deg); animation-delay: -0.14s; }
 .baton-2 { transform: rotate(20deg); animation-delay: -0.28s; }
 .baton-3 { transform: rotate(30deg); animation-delay: -0.42s; }
@@ -96,4 +105,4 @@
 .baton-32 { transform: rotate(320deg); animation-delay: -4.48s; }
 .baton-33 { transform: rotate(330deg); animation-delay: -4.62s; }
 .baton-34 { transform: rotate(340deg); animation-delay: -4.76s; }
-.baton-35 { transform: rotate(350deg); animation-delay: -4.90s; }
+.baton-35 { transform: rotate(350deg); animation-delay: -4.90s; } */

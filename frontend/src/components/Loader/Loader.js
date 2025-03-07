@@ -1,7 +1,19 @@
 // UXR/frontend/src/components/LoadingBar/LoadingBar.js
 import React from 'react';
+import { CircularProgress, Box } from '@mui/material';
 import './Loader.css';
 
+function Loader() {
+    return (
+        <Box className="loader-container">
+            <CircularProgress />
+        </Box>
+    );
+}
+
+export default Loader;
+
+/* Original Implementation
 function Loader() {
     return (
         <div className="container">
@@ -15,5 +27,4 @@ function Loader() {
         </div>
     );
 }
-
-export default Loader;
+*/

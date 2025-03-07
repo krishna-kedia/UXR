@@ -9,6 +9,13 @@ import UploadOptionsMenu from '../../components/UploadOptionsMenu/UploadOptionsM
 import Alert from '../../components/Alert/Alert';
 import Loader from '../../components/Loader/Loader';
 import HandleQuestionOverlay from '../../components/HandleQuestionOverlay/HandleQuestionOverlay';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
 
 function IndividualProjectPage() {
     const [transcripts, setTranscripts] = useState([]);
@@ -24,6 +31,10 @@ function IndividualProjectPage() {
     const [alert, setAlert] = useState(null);
     const [project, setProject] = useState({});
     const [showQuestionOverlay, setShowQuestionOverlay] = useState(false);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [editingTranscript, setEditingTranscript] = useState(null);
+    const [transcriptToDelete, setTranscriptToDelete] = useState(null);
 
     const showAlert = (message, type) => {
         setAlert({ message, type });
@@ -32,7 +43,7 @@ function IndividualProjectPage() {
     const fetchProjectDetails = async () => {
         try {
             setIsLoading(true);
-            const response = await fetch(`http://localhost:5001/api/projects/${projectId}`, {
+            const response = await fetch(`/api/projects/${projectId}`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
@@ -56,7 +67,8 @@ function IndividualProjectPage() {
                 bot_session_id: transcript.bot_session_id,
                 uploadStatus: transcript.uploadStatus,
                 progress: transcript.progress,
-                createdAt: transcript.createdAt
+                createdAt: transcript.createdAt,
+                s3Url: transcript.s3Url
             }));
 
             // Get bot statuses for meeting recordings
@@ -81,7 +93,7 @@ function IndividualProjectPage() {
 
     const handleSaveQuestions = async (questionsToSave) => {
         try {
-            const response = await fetch('http://localhost:5001/api/questions', {
+            const response = await fetch('/api/questions', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -162,63 +174,39 @@ function IndividualProjectPage() {
 
         const uploadPartWithRetry = async (partNumber, chunk, attempt = 1) => {
             try {
-                console.log(`[Part ${partNumber}] Starting upload attempt ${attempt}/${MAX_RETRIES}`, {
-                    size: chunk.size,
-                    start: chunk.size * (partNumber - 1),
-                    end: chunk.size * partNumber
-                });
-                
                 const urlResponse = await fetch(
-                    `http://localhost:5001/api/transcripts/upload-part-url?uploadId=${uploadId}&partNumber=${partNumber}&s3Key=${s3Key}`,
+                    `/api/transcripts/upload-part-url?uploadId=${uploadId}&partNumber=${partNumber}&s3Key=${s3Key}`,
                     {
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
                         }
                     }
                 );
-                
+
                 if (!urlResponse.ok) {
-                    const errorText = await urlResponse.text();
-                    console.error(`[Part ${partNumber}] Failed to get signed URL:`, errorText);
                     throw new Error('Failed to get upload URL');
                 }
 
                 const { signedUrl } = await urlResponse.json();
 
-
                 const uploadResponse = await fetch(signedUrl, {
                     method: 'PUT',
                     headers: {
-                        'Content-Type': data.file.type,
+                        'Content-Type': 'application/octet-stream',  // Use this for binary data
                         'Content-Length': chunk.size.toString(),
                     },
-                    body: chunk
+                    body: chunk,
+                    mode: 'cors'  // Add this
                 });
 
                 if (!uploadResponse.ok) {
-                    const errorText = await uploadResponse.text();
-                    console.error(`[Part ${partNumber}] Upload failed:`, {
-                        status: uploadResponse.status,
-                        statusText: uploadResponse.statusText,
-                        error: errorText
-                    });
                     throw new Error(`Failed to upload part ${partNumber}`);
                 }
 
-                const rawETag = uploadResponse.headers.get('ETag');
-
-                
-                if (!rawETag) {
-                    throw new Error(`No ETag received for part ${partNumber}`);
-                }
-                
-                return rawETag;  // Return with quotes intact
-
+                return uploadResponse.headers.get('ETag');
             } catch (error) {
-                console.error(`[Part ${partNumber}] Error:`, error);
                 if (attempt < MAX_RETRIES) {
-                    const delayTime = RETRY_DELAY * attempt;
-                    await wait(delayTime);
+                    await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
                     return uploadPartWithRetry(partNumber, chunk, attempt + 1);
                 }
                 throw error;
@@ -232,7 +220,7 @@ function IndividualProjectPage() {
                     throw new Error('Invalid ETags detected in parts');
                 }
 
-                const completeResponse = await fetch('http://localhost:5001/api/transcripts/complete-upload', {
+                const completeResponse = await fetch('/api/transcripts/complete-upload', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -265,7 +253,7 @@ function IndividualProjectPage() {
         // First try-catch: Handle the upload process
         try {
             setIsLoading(true);
-            const initiateResponse = await fetch('http://localhost:5001/api/transcripts/initiate-upload', {
+            const initiateResponse = await fetch('/api/transcripts/initiate-upload', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -344,7 +332,7 @@ function IndividualProjectPage() {
         } catch (error) {
             if (uploadId || s3Key || transcriptId) {
                 try {
-                    await fetch('http://localhost:5001/api/transcripts/abort-upload', {
+                    await fetch('/api/transcripts/abort-upload', {
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -382,7 +370,7 @@ function IndividualProjectPage() {
 
         // Step 1: Transcribe the file
         try {
-            const transcribeResponse = await fetch(`http://localhost:5001/api/transcripts/transcribe/${transcriptId}`, {
+            const transcribeResponse = await fetch(`/api/transcripts/transcribe/${transcriptId}`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -409,7 +397,7 @@ function IndividualProjectPage() {
 
         // Step 2: Generate questions
         try {
-            const questionsResponse = await fetch(`http://localhost:5001/api/transcripts/generate-transcript-questions/${transcriptId}`, {
+            const questionsResponse = await fetch(`/api/transcripts/generate-transcript-questions/${transcriptId}`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -435,7 +423,7 @@ function IndividualProjectPage() {
     };
 
     const handleBotInvite = async (data) => {
-        const response = await fetch('http://localhost:5001/api/bot/create', {
+        const response = await fetch('/api/bot/create', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -457,6 +445,64 @@ function IndividualProjectPage() {
         fetchProjectDetails();
     };
     const hasTranscripts = project.transcripts && project.transcripts.length > 0 && project.transcripts.some(transcript => transcript.uploadStatus === 'READY_TO_USE');
+
+    const handleEditTranscript = (transcript) => {
+        setEditingTranscript(transcript);
+        setEditDialogOpen(true);
+    };
+
+    const handleUpdateTranscript = async () => {
+        try {
+            const response = await fetch(`/api/transcripts/${editingTranscript._id}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    transcriptName: editingTranscript.transcriptName,
+                    metadata: editingTranscript.metadata
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update transcript');
+            }
+
+            showAlert('Transcript updated successfully', 'success');
+            setEditDialogOpen(false);
+            fetchProjectDetails();
+        } catch (error) {
+            showAlert(error.message, 'error');
+        }
+    };
+
+    const handleDeleteTranscript = (transcriptId) => {
+        const transcript = transcripts.find(t => t._id === transcriptId);
+        setTranscriptToDelete(transcript);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        try {
+            const response = await fetch(`/api/transcripts/${transcriptToDelete._id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete transcript');
+            }
+
+            showAlert('Transcript deleted successfully', 'success');
+            setDeleteDialogOpen(false);
+            fetchProjectDetails();
+        } catch (error) {
+            showAlert(error.message, 'error');
+        }
+    };
 
     return (
         <>
@@ -518,7 +564,8 @@ function IndividualProjectPage() {
                                             progress: uploadProgress[transcript._id] || 0,
                                             uploadStatus: transcript.uploadStatus
                                         }}
-                                        onDelete={fetchProjectDetails}
+                                        onDelete={handleDeleteTranscript}
+                                        onEdit={handleEditTranscript}
                                     />
                                 ))}
                         </div>
@@ -540,6 +587,46 @@ function IndividualProjectPage() {
                         onClose={() => setDialogOpen(false)}
                         onSubmit={handleSubmit}
                     />
+
+                    {/* Edit Dialog */}
+                    <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)}>
+                        <DialogTitle>Edit Transcript</DialogTitle>
+                        <DialogContent>
+                            <TextField
+                                autoFocus
+                                margin="dense"
+                                label="Transcript Name"
+                                type="text"
+                                fullWidth
+                                value={editingTranscript?.transcriptName || ''}
+                                onChange={(e) => setEditingTranscript(prev => ({
+                                    ...prev,
+                                    transcriptName: e.target.value
+                                }))}
+                            />
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+                            <Button onClick={handleUpdateTranscript} variant="contained">Save</Button>
+                        </DialogActions>
+                    </Dialog>
+
+                    {/* Delete Dialog */}
+                    <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+                        <DialogTitle>Delete Transcript?</DialogTitle>
+                        <DialogContent>
+                            <DialogContentText>
+                                Are you sure you want to delete "{transcriptToDelete?.transcriptName}"? 
+                                This action cannot be undone and will permanently delete the transcript and all associated data.
+                            </DialogContentText>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+                            <Button onClick={handleConfirmDelete} color="error" variant="contained">
+                                Delete
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
                 </div>
             )}
         </>
